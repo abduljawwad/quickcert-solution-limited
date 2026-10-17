@@ -1,0 +1,61 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Close from "../components/home/Close.astro";
+import Coverage from "../components/home/Coverage.astro";
+import Hero from "../components/home/Hero.astro";
+import HowItWorks from "../components/home/HowItWorks.astro";
+import PayWithConfidence from "../components/home/PayWithConfidence.astro";
+import Questions from "../components/home/Questions.astro";
+import Services from "../components/home/Services.astro";
+import WhoItIsFor from "../components/home/WhoItIsFor.astro";
+import { business, openingHoursSpecification } from "../config/business";
+import { faqPageJsonLd } from "../components/home/content";
+import { areaServedPlaces } from "../lib/place";
+
+const description = `EPCs and property certificates in ${business.baseTown}, with visits across ${business.serviceAreaPhrase}.`;
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const siteUrl = new URL("/", origin).href;
+const faq = faqPageJsonLd();
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "ProfessionalService",
+      name: business.legalName,
+      url: siteUrl,
+      telephone: business.phoneHref.replace(/^tel:/, ""),
+      email: business.email,
+      openingHoursSpecification: openingHoursSpecification(),
+      areaServed: areaServedPlaces(),
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: business.streetAddress,
+        addressLocality: business.baseTown,
+        postalCode: business.postalCode,
+        addressCountry: "GB",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: faq.mainEntity,
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title={`EPCs and property certificates in ${business.baseTown}`}
+  description={description}
+  canonicalPath="/"
+  jsonLd={jsonLd}
+>
+  <Hero />
+  <WhoItIsFor />
+  <Services />
+  <HowItWorks />
+  <PayWithConfidence />
+  <Coverage />
+  <Questions />
+  <Close />
+</BaseLayout>

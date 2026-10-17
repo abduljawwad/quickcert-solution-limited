@@ -1,0 +1,154 @@
+---
+import { business } from "../../config/business";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { primaryActionClass, secondaryActionClass } from "../../lib/actions";
+import { textLinkClass } from "../../lib/fields";
+
+const path = "/guides/do-i-need-an-epc";
+const title = `When a home in ${business.baseTown} needs an EPC`;
+const description = `A domestic EPC is needed before marketing a home in ${business.baseTown} for sale. Landlords must meet a minimum EPC band. The assessor visits and emails the certificate.`;
+
+function serviceBySlug(slug: string) {
+  const service = business.services.find((item) => item.slug === slug);
+  if (!service) {
+    throw new Error(`Missing service: ${slug}`);
+  }
+  return service;
+}
+
+const domestic = serviceBySlug("epc-domestic");
+const commercial = serviceBySlug("epc-commercial");
+
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const pageUrl = new URL(path, origin).href;
+const siteUrl = new URL("/", origin).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description,
+  url: pageUrl,
+  author: {
+    "@type": "Organization",
+    name: business.legalName,
+    url: siteUrl,
+  },
+};
+---
+
+<BaseLayout title={title} description={description} canonicalPath={path} jsonLd={jsonLd}>
+  <section aria-labelledby="guide-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">
+              When a home needs an EPC
+            </span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="guide-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        A domestic energy performance certificate is for a home. You need one before the home is
+        marketed for sale. If you let the home, you also need to meet a minimum EPC band.
+      </p>
+
+      <section aria-labelledby="sale-heading" class="mt-12 max-w-3xl">
+        <h2 id="sale-heading" class="text-3xl leading-tight text-balance text-primary">
+          Marketing a home for sale
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          A domestic EPC is needed before you market a home for sale. The price for the visit is on
+          the domestic EPC page.
+        </p>
+        <p class="mt-4">
+          <a
+            href={`/services/${domestic.slug}`}
+            class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+          >
+            {domestic.name} in {business.baseTown}
+          </a>
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="let-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="let-heading" class="text-3xl leading-tight text-balance text-primary">
+          Letting a home
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          Landlords need to meet a minimum EPC band. The certificate for a home is a domestic EPC,
+          the same certificate used when a home is sold.
+        </p>
+        <p class="mt-4">
+          <a href="/guides/landlord-compliance-checklist" class={textLinkClass}>
+            Which services a landlord may need
+          </a>
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="visit-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="visit-heading" class="text-3xl leading-tight text-balance text-primary">
+          After the visit
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          The assessor visits the property and emails the certificate. {business.shortName} is based
+          in {business.baseTown}. Visits also cover {business.serviceAreaPhrase}.
+        </p>
+        <p class="mt-4">
+          <a href="/areas" class={textLinkClass}>Areas we cover</a>
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="commercial-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="commercial-heading" class="text-3xl leading-tight text-balance text-primary">
+          When the property is not a home
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          A shop, office, or other commercial building uses a commercial EPC. That certificate is
+          separate from the one for a home.
+        </p>
+        <p class="mt-4">
+          <a
+            href={`/services/${commercial.slug}`}
+            class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+          >
+            {commercial.name} in {business.baseTown}
+          </a>
+        </p>
+      </section>
+
+      <div class="mt-8 flex max-w-3xl flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <a
+          href={`/services/${domestic.slug}`}
+          class:list={[primaryActionClass, "w-full sm:w-auto"]}
+        >
+          View the domestic EPC
+        </a>
+        <a href="/contact" class:list={[secondaryActionClass, "w-full sm:w-auto"]}>
+          Contact {business.shortName}
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

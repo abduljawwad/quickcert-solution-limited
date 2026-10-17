@@ -1,0 +1,66 @@
+---
+import { visitOutcome } from "./content";
+import { business, type Service } from "../../config/business";
+import { primaryActionClass, secondaryActionClass } from "../../lib/actions";
+import { formatPrice } from "../../lib/price";
+
+const bookable = business.services.filter(
+  (service): service is Extract<Service, { kind: "book" }> => service.kind === "book",
+);
+
+const quotes = business.services.filter(
+  (service): service is Extract<Service, { kind: "quote" }> => service.kind === "quote",
+);
+---
+
+<section id="services" aria-labelledby="services-heading">
+  <div class="mx-auto w-full max-w-6xl px-4">
+    <div class="border-t border-outline/40 py-14 lg:py-20">
+    <h2 id="services-heading" class="text-3xl leading-tight text-balance text-primary">Services</h2>
+    <p class="mt-4 max-w-2xl text-lg leading-7 text-on-surface">
+      Book a priced visit, or ask for a written quote before you pay.
+    </p>
+
+    <h3 class="mt-12 text-2xl leading-tight text-primary">Priced visits</h3>
+    <p class="mt-4 max-w-2xl leading-7 text-on-surface">{visitOutcome}</p>
+    <ul class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+      {
+        bookable.map((service) => (
+          <li class="flex h-full flex-col border border-outline/40 bg-surface-container-lowest p-5">
+            <h4 class="text-xl leading-tight text-primary">{service.name}</h4>
+            <p class="mt-3 flex-1 leading-7 text-on-surface">{service.summary}</p>
+            <p class="mt-6 text-lg font-semibold text-on-surface tabular-nums">
+              {formatPrice(service.pricePence)}
+            </p>
+            <a
+              href={`/book/${service.slug}`}
+              class:list={[primaryActionClass, "mt-4 w-full"]}
+            >
+              Book<span class="sr-only"> {service.name}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <h3 class="mt-12 text-2xl leading-tight text-primary">Written quotes</h3>
+    <ul class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+      {
+        quotes.map((service) => (
+          <li class="flex h-full flex-col border border-outline/40 bg-surface-container-lowest p-5">
+            <h4 class="text-xl leading-tight text-primary">{service.name}</h4>
+            <p class="mt-3 flex-1 leading-7 text-on-surface">{service.summary}</p>
+            <p class="mt-6 text-lg font-semibold text-on-surface">Written quote before you pay.</p>
+            <a
+              href={`/services/${service.slug}`}
+              class:list={[secondaryActionClass, "mt-4 w-full"]}
+            >
+              Get a quote<span class="sr-only"> for {service.name}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    </div>
+  </div>
+</section>

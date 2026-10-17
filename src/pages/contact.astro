@@ -1,0 +1,163 @@
+---
+import { business, openingHoursSpecification, type Service } from "../config/business";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { primaryActionClass } from "../lib/actions";
+import { textLinkClass } from "../lib/fields";
+import { areaServedPlaces } from "../lib/place";
+
+const title = `Contact ${business.shortName} in ${business.baseTown}`;
+const description = `Call or email ${business.legalName}, a property-certificate surveyor in ${business.baseTown}, about EPCs, risk assessments, inventories, and PAT testing.`;
+
+const bookable = business.services.filter(
+  (service): service is Extract<Service, { kind: "book" }> => service.kind === "book",
+);
+
+const quotes = business.services.filter(
+  (service): service is Extract<Service, { kind: "quote" }> => service.kind === "quote",
+);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  name: title,
+  mainEntity: {
+    "@type": "Organization",
+    name: business.legalName,
+    telephone: business.phoneHref.replace(/^tel:/, ""),
+    email: business.email,
+    openingHoursSpecification: openingHoursSpecification(),
+    areaServed: areaServedPlaces(),
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: business.streetAddress,
+      addressLocality: business.baseTown,
+      postalCode: business.postalCode,
+      addressCountry: "GB",
+    },
+  },
+};
+---
+
+<BaseLayout title={title} description={description} canonicalPath="/contact" jsonLd={jsonLd}>
+  <section aria-labelledby="contact-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">Contact</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="contact-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        {business.shortName} is a property-certificate surveyor based in {business.baseTown}. Visits also cover {business.serviceAreaPhrase}.
+      </p>
+
+      <div class="mt-10 grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-16">
+        <section
+          aria-labelledby="reach-heading"
+          class="border border-outline/40 bg-surface-container-lowest p-5"
+        >
+          <h2 id="reach-heading" class="text-3xl leading-tight text-balance text-primary">
+            Call or email
+          </h2>
+          <address class="mt-6 not-italic">
+            <dl class="grid gap-4">
+              <div>
+                <dt class="text-sm font-medium text-on-surface">Phone</dt>
+                <dd>
+                  <a href={business.phoneHref} class={textLinkClass}>{business.phoneDisplay}</a>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-on-surface">Email</dt>
+                <dd>
+                  <a href={`mailto:${business.email}`} class:list={[textLinkClass, "break-words"]}>
+                    {business.email}
+                  </a>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-on-surface">Opening hours</dt>
+                <dd class="mt-1 leading-7 text-pretty text-on-surface">{business.hours}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-on-surface">Registered office</dt>
+                <dd class="mt-1 leading-7 text-pretty text-on-surface">{business.registeredOffice}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-on-surface">Registered in</dt>
+                <dd class="mt-1 leading-7 text-on-surface">{business.registeredIn}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-on-surface">Company number</dt>
+                <dd class="mt-1 leading-7 text-on-surface">{business.companyNumber}</dd>
+              </div>
+            </dl>
+          </address>
+          <p class="mt-4 leading-7 text-pretty text-on-surface">
+            We reply to email within one working day.
+          </p>
+        </section>
+
+        <div class="grid gap-10">
+          <section aria-labelledby="priced-path-heading">
+            <h2 id="priced-path-heading" class="text-3xl leading-tight text-balance text-primary">
+              I already know the price
+            </h2>
+            <p class="mt-4 leading-7 text-pretty text-on-surface">
+              Priced visits are listed together. Each one opens its own booking screen.
+            </p>
+            <a
+              href="/services"
+              class:list={[primaryActionClass, "mt-4 w-full whitespace-normal py-2 text-balance sm:w-auto"]}
+            >
+              View services
+            </a>
+            <ul class="mt-4">
+              {
+                bookable.map((service) => (
+                  <li>
+                    <a href={`/book/${service.slug}`} class={textLinkClass}>
+                      Book {service.name}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </section>
+
+          <section aria-labelledby="quote-path-heading">
+            <h2 id="quote-path-heading" class="text-3xl leading-tight text-balance text-primary">
+              I need a quote for electrical or plumbing work
+            </h2>
+            <p class="mt-4 leading-7 text-pretty text-on-surface">
+              Electrical work and plumbing are priced in writing on their own pages, before any payment.
+            </p>
+            <ul class="mt-4">
+              {
+                quotes.map((service) => (
+                  <li>
+                    <a href={`/services/${service.slug}`} class={textLinkClass}>
+                      Request a quote for {service.name}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

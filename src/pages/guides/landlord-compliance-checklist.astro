@@ -1,0 +1,201 @@
+---
+import { business } from "../../config/business";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { secondaryActionClass } from "../../lib/actions";
+import { textLinkClass } from "../../lib/fields";
+
+const path = "/guides/landlord-compliance-checklist";
+const title = `Which services a landlord in ${business.baseTown} may need`;
+const description = `A short checklist for ${business.baseTown} landlords: domestic EPC, legionella and fire risk assessments, inventory, PAT testing, and when to request quotes for electrical or plumbing work.`;
+
+function serviceBySlug(slug: string) {
+  const service = business.services.find((item) => item.slug === slug);
+  if (!service) {
+    throw new Error(`Missing service: ${slug}`);
+  }
+  return service;
+}
+
+const domestic = serviceBySlug("epc-domestic");
+const legionella = serviceBySlug("legionella-risk-assessment");
+const fire = serviceBySlug("fire-risk-assessment");
+const inventory = serviceBySlug("inventory");
+const pat = serviceBySlug("pat-testing");
+const electrical = serviceBySlug("electrical");
+const plumbing = serviceBySlug("plumbing");
+
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const pageUrl = new URL(path, origin).href;
+const siteUrl = new URL("/", origin).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description,
+  url: pageUrl,
+  author: {
+    "@type": "Organization",
+    name: business.legalName,
+    url: siteUrl,
+  },
+};
+---
+
+<BaseLayout title={title} description={description} canonicalPath={path} jsonLd={jsonLd}>
+  <section aria-labelledby="guide-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">
+              Landlord compliance checklist
+            </span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="guide-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        Landlords and letting agents often need more than one report for a rental home. This
+        checklist links to the services {business.shortName} offers in {business.baseTown} and
+        nearby. It is general guidance, not legal advice.
+      </p>
+
+      <section aria-labelledby="checklist-heading" class="mt-12 max-w-3xl">
+        <h2 id="checklist-heading" class="text-3xl leading-tight text-balance text-primary">
+          Checklist
+        </h2>
+        <ul class="mt-6 space-y-8 leading-7 text-pretty text-on-surface">
+          <li>
+            <p class="font-medium text-primary">{domestic.name}</p>
+            <p class="mt-2">
+              You need a domestic EPC before marketing a home for sale, and landlords must meet a
+              minimum EPC band when letting. The assessor visits and emails the certificate.
+            </p>
+            <p class="mt-3">
+              <a
+                href={`/services/${domestic.slug}`}
+                class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+              >
+                {domestic.name} in {business.baseTown}
+              </a>
+              <span class="text-on-surface-variant"> · </span>
+              <a href="/guides/do-i-need-an-epc" class={textLinkClass}>
+                When a home needs an EPC
+              </a>
+            </p>
+          </li>
+          <li>
+            <p class="font-medium text-primary">{legionella.name}</p>
+            <p class="mt-2">{legionella.summary}</p>
+            <p class="mt-3">
+              <a
+                href={`/services/${legionella.slug}`}
+                class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+              >
+                {legionella.name} in {business.baseTown}
+              </a>
+            </p>
+          </li>
+          <li>
+            <p class="font-medium text-primary">{fire.name}</p>
+            <p class="mt-2">{fire.summary}</p>
+            <p class="mt-3">
+              <a
+                href={`/services/${fire.slug}`}
+                class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+              >
+                {fire.name} in {business.baseTown}
+              </a>
+            </p>
+          </li>
+          <li>
+            <p class="font-medium text-primary">{inventory.name}</p>
+            <p class="mt-2">{inventory.summary}</p>
+            <p class="mt-3">
+              <a
+                href={`/services/${inventory.slug}`}
+                class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+              >
+                {inventory.name} in {business.baseTown}
+              </a>
+            </p>
+          </li>
+          <li>
+            <p class="font-medium text-primary">{pat.name}</p>
+            <p class="mt-2">{pat.summary}</p>
+            <p class="mt-3">
+              <a
+                href={`/services/${pat.slug}`}
+                class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+              >
+                {pat.name} in {business.baseTown}
+              </a>
+            </p>
+          </li>
+          <li>
+            <p class="font-medium text-primary">{electrical.name}</p>
+            <p class="mt-2">
+              Electrical work, including an electrical installation condition report, is priced in
+              writing before any payment. Describe what you need on the quote form.
+            </p>
+            <p class="mt-3">
+              <a
+                href={`/services/${electrical.slug}`}
+                class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+              >
+                {electrical.name} in {business.baseTown}
+              </a>
+            </p>
+          </li>
+          <li>
+            <p class="font-medium text-primary">{plumbing.name}</p>
+            <p class="mt-2">{plumbing.summary}</p>
+            <p class="mt-3">
+              <a
+                href={`/services/${plumbing.slug}`}
+                class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+              >
+                {plumbing.name} in {business.baseTown}
+              </a>
+            </p>
+          </li>
+        </ul>
+      </section>
+
+      <section
+        aria-labelledby="book-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="book-heading" class="text-3xl leading-tight text-balance text-primary">
+          Book a visit or ask for a quote
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          Fixed-price visits can be booked from the service page. Electrical and plumbing work
+          starts with a written quote. {business.shortName} is based in {business.baseTown}.
+        </p>
+        <p class="mt-4">
+          <a href="/services" class={textLinkClass}>All services</a>
+          <span class="text-on-surface-variant"> · </span>
+          <a href="/areas" class={textLinkClass}>Areas we cover</a>
+        </p>
+      </section>
+
+      <div class="mt-8">
+        <a href="/contact" class:list={[secondaryActionClass, "w-full sm:w-auto"]}>
+          Contact {business.shortName}
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

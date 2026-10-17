@@ -1,0 +1,194 @@
+---
+import { business } from "../config/business";
+import { bookVisit, primaryNav } from "../config/nav";
+import Icon from "./Icon.astro";
+
+const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+function isCurrent(href: string): boolean {
+  const path = href.replace(/\/$/, "") || "/";
+  return pathname === path;
+}
+
+const navLinkClass =
+  "inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium hover:bg-surface-container-low";
+const bookClass =
+  "inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-primary px-4 text-sm font-bold text-on-primary hover:bg-primary-container";
+---
+
+<header class="border-b border-outline/40 bg-surface-container-lowest">
+  <div class="mx-auto flex w-full max-w-6xl items-center gap-2 px-4 py-2">
+    <a
+      href="/"
+      class="inline-flex min-h-11 items-center font-heading text-xl font-semibold text-primary sm:text-2xl"
+    >
+      QuickCert
+    </a>
+
+    <nav aria-label="Primary" class="ms-auto hidden items-center lg:flex">
+      {
+        primaryNav.map((link) => (
+          <a
+            href={link.href}
+            aria-current={isCurrent(link.href) ? "page" : undefined}
+            class:list={[navLinkClass, isCurrent(link.href) ? "text-primary" : "text-on-surface"]}
+          >
+            {link.label}
+          </a>
+        ))
+      }
+      <a
+        href={business.phoneHref}
+        class="inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-primary hover:bg-surface-container-low"
+      >
+        <Icon name="phone" />
+        <span class="sr-only">Call</span>
+        <span>{business.phoneDisplay}</span>
+      </a>
+      <a href={bookVisit.href} class:list={[bookClass, "ms-2"]}>{bookVisit.label}</a>
+    </nav>
+
+    <div class="ms-auto flex items-center lg:hidden">
+      <a
+        href={business.phoneHref}
+        class="inline-flex size-11 items-center justify-center rounded-md text-primary"
+        aria-label={`Call ${business.phoneDisplay}`}
+      >
+        <Icon name="phone" />
+      </a>
+      <button
+        type="button"
+        id="open-menu"
+        class="inline-flex size-11 items-center justify-center rounded-md text-primary"
+        aria-controls="mobile-nav"
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        aria-label="Open menu"
+      >
+        <Icon name="menu" />
+      </button>
+    </div>
+  </div>
+</header>
+
+<dialog
+  id="mobile-nav"
+  aria-labelledby="mobile-nav-title"
+  class="text-on-surface"
+>
+  <div class="flex items-center justify-between border-b border-surface-container-high px-6">
+    <h2 id="mobile-nav-title" class="text-xl">Menu</h2>
+    <button
+      type="button"
+      id="close-menu"
+      class="inline-flex size-11 items-center justify-center rounded-md text-on-surface"
+      aria-label="Close menu"
+    >
+      <Icon name="close" />
+    </button>
+  </div>
+  <nav aria-label="Primary" class="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+    {
+      primaryNav.map((link) => (
+        <a
+          href={link.href}
+          aria-current={isCurrent(link.href) ? "page" : undefined}
+          class:list={[
+            "flex min-h-11 items-center rounded-md px-3 text-base font-medium",
+            isCurrent(link.href) ? "text-primary" : "text-on-surface",
+          ]}
+        >
+          {link.label}
+        </a>
+      ))
+    }
+    <a
+      href={business.phoneHref}
+      class="flex min-h-11 items-center gap-2 rounded-md px-3 text-base font-semibold text-primary"
+    >
+      <Icon name="phone" />
+      <span class="sr-only">Call</span>
+      <span>{business.phoneDisplay}</span>
+    </a>
+    <a href={bookVisit.href} class:list={[bookClass, "mx-3 mt-2"]}>{bookVisit.label}</a>
+  </nav>
+</dialog>
+
+<style is:global>
+  #mobile-nav {
+    box-sizing: border-box;
+    width: min(100vw, 22rem);
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0 0 0 auto;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) 0;
+    border: 0;
+    background: var(--color-surface-container-lowest);
+    color: var(--color-on-surface);
+    overscroll-behavior: contain;
+  }
+
+  #mobile-nav[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #mobile-nav::backdrop {
+    background: color-mix(in srgb, var(--color-on-surface) 45%, transparent);
+  }
+</style>
+
+<script>
+  const dialog = document.getElementById("mobile-nav");
+  const openButton = document.getElementById("open-menu");
+  const closeButton = document.getElementById("close-menu");
+
+  if (
+    dialog instanceof HTMLDialogElement &&
+    openButton instanceof HTMLButtonElement &&
+    closeButton instanceof HTMLButtonElement
+  ) {
+    const setExpanded = (expanded: boolean) => {
+      openButton.setAttribute("aria-expanded", expanded ? "true" : "false");
+    };
+
+    const requestClose = () => {
+      setExpanded(false);
+      if (dialog.open) dialog.close();
+    };
+
+    openButton.addEventListener("click", () => {
+      if (dialog.open) return;
+      dialog.showModal();
+      setExpanded(true);
+    });
+
+    closeButton.addEventListener("click", requestClose);
+
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") requestClose();
+    });
+
+    dialog.addEventListener("close", () => {
+      setExpanded(false);
+      if (openButton.getClientRects().length > 0) openButton.focus();
+    });
+
+    dialog.addEventListener("click", (event) => {
+      const target = event.target;
+      if (target === dialog) {
+        requestClose();
+        return;
+      }
+      if (target instanceof Element && target.closest("a")) requestClose();
+    });
+
+    const desktopNav = window.matchMedia("(min-width: 64rem)");
+    desktopNav.addEventListener("change", (event) => {
+      if (event.matches && dialog.open) {
+        dialog.close();
+      }
+    });
+  }
+</script>

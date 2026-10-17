@@ -1,0 +1,245 @@
+---
+import { business } from "../config/business";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { textLinkClass } from "../lib/fields";
+
+const path = "/privacy";
+const title = "Privacy notice";
+const description =
+  "How QuickCert Solution Limited uses the details you enter when you book a visit or request a quote for electrical or plumbing work.";
+
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const pageUrl = new URL(path, origin).href;
+const siteUrl = new URL("/", origin).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: `${title} | ${business.shortName}`,
+  description,
+  url: pageUrl,
+  isPartOf: {
+    "@type": "WebSite",
+    name: business.shortName,
+    url: siteUrl,
+  },
+  publisher: {
+    "@type": "Organization",
+    name: business.legalName,
+    url: siteUrl,
+  },
+};
+---
+
+<BaseLayout title={title} description={description} canonicalPath={path} jsonLd={jsonLd}>
+  <section aria-labelledby="privacy-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">Privacy</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="privacy-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        This notice explains what we collect on this website, who we share it with, and how you can
+        ask us about your details. It applies to {business.legalName}, trading as {business.shortName},
+        company number {business.companyNumber}, registered in {business.registeredIn}. The registered
+        office is {business.registeredOffice}.
+      </p>
+
+      <section aria-labelledby="collect-heading" class="mt-12 max-w-3xl">
+        <h2 id="collect-heading" class="text-3xl leading-tight text-balance text-primary">
+          What you give us
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          We only ask for details that help us arrange a visit or reply to a quote request.
+        </p>
+        <h3 class="mt-6 text-xl leading-snug text-primary">Booking a priced visit</h3>
+        <p class="mt-3 leading-7 text-pretty text-on-surface">
+          On the booking form you enter your name, email, phone number, and the property address. You
+          can add an optional access note, for example who has the keys. After you submit, we send you
+          to Calendly’s website to choose a time and pay. Calendly can prefill your name, email,
+          address, and access note from what you entered here. Your phone number stays on our side
+          unless you type it again on Calendly.
+        </p>
+        <h3 class="mt-6 text-xl leading-snug text-primary">Requesting a quote</h3>
+        <p class="mt-3 leading-7 text-pretty text-on-surface">
+          For electrical work or plumbing you enter your name, email, phone number, property address,
+          and a short description of the work in your own words. That description is what we need to
+          price the job.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="use-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="use-heading" class="text-3xl leading-tight text-balance text-primary">
+          How we use your details
+        </h2>
+        <ul class="mt-4 list-disc space-y-2 pl-5 leading-7 text-pretty text-on-surface">
+          <li>To arrange and carry out the visit at the property address you gave us.</li>
+          <li>To contact you about your booking or quote, including by phone or email.</li>
+          <li>To hand you off to Calendly so you can pick a time and pay for a priced visit.</li>
+          <li>
+            To store your quote enquiry in our customer system when that system is connected (see
+            below).
+          </li>
+        </ul>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          We do not sell your personal details. Card numbers never pass through this website.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="share-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="share-heading" class="text-3xl leading-tight text-balance text-primary">
+          Who we share details with
+        </h2>
+        <dl class="mt-4 grid gap-6">
+          <div>
+            <dt class="text-lg font-medium text-primary">Calendly</dt>
+            <dd class="mt-2 leading-7 text-pretty text-on-surface">
+              When you book a priced visit, we open Calendly’s hosted page in your browser. Calendly
+              receives the contact and address fields we prefill, and you choose an appointment time
+              there. Calendly’s own privacy notice applies on their site.
+            </dd>
+          </div>
+          <div>
+            <dt class="text-lg font-medium text-primary">Stripe (through Calendly)</dt>
+            <dd class="mt-2 leading-7 text-pretty text-on-surface">
+              Payment for a priced visit is taken on Calendly’s checkout, which is powered by Stripe.
+              Stripe processes your payment; we do not receive or store your card number on our
+              servers.
+            </dd>
+          </div>
+          <div>
+            <dt class="text-lg font-medium text-primary">HubSpot</dt>
+            <dd class="mt-2 leading-7 text-pretty text-on-surface">
+              When our HubSpot connection is active, quote enquiries are saved there as a contact and
+              a deal, including the service, address, and your description of the work. For bookings,
+              we also save your details there as a contact and a deal when that connection is active,
+              so we can follow up if you do not finish on Calendly. If HubSpot is not connected, a
+              quote submission is not stored online and the form asks you to call us instead. A booking
+              can still continue to Calendly even when HubSpot is not connected, but we will not have
+              a copy of your details in HubSpot until the connection is in place.
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section
+        aria-labelledby="logs-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="logs-heading" class="text-3xl leading-tight text-balance text-primary">
+          Server logs
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          When you submit a booking or quote form, our server writes a short log line. It records
+          whether the submission succeeded, failed validation, or could not be saved, and which
+          service you chose. It does not include your name, email, phone, address, access note, or
+          job description. It never includes payment card numbers.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="cookies-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="cookies-heading" class="text-3xl leading-tight text-balance text-primary">
+          Cookies and similar technology
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          This marketing site does not load HubSpot tracking scripts or other site-wide analytics
+          cookies. When you open Calendly to choose a time and pay, Calendly may set cookies on its
+          own domain. Those are controlled by Calendly, not by us.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="keep-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="keep-heading" class="text-3xl leading-tight text-balance text-primary">
+          How long we keep records
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          We keep booking and quote records for as long as needed to carry out the visit, send the
+          report or written price, and handle any follow-up you reasonably expect. When you no longer
+          need us to hold your details, you can ask for a copy or ask us to delete what we hold, where
+          the law allows.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="rights-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="rights-heading" class="text-3xl leading-tight text-balance text-primary">
+          Your rights and how to contact us
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          Under UK data protection law you may have rights to access, correct, or delete personal
+          data we hold about you, and to object to or restrict certain processing. To exercise those
+          rights, or if you have a privacy question, contact us:
+        </p>
+        <address class="mt-4 not-italic">
+          <dl class="grid gap-4">
+            <div>
+              <dt class="text-sm font-medium text-on-surface">Phone</dt>
+              <dd>
+                <a href={business.phoneHref} class={textLinkClass}>
+                  {business.phoneDisplay}
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-on-surface">Email</dt>
+              <dd>
+                <a href={`mailto:${business.email}`} class:list={[textLinkClass, "break-words"]}>
+                  {business.email}
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-on-surface">Registered office</dt>
+              <dd class="mt-1 leading-7 text-pretty text-on-surface">{business.registeredOffice}</dd>
+            </div>
+          </dl>
+        </address>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          If you are unhappy with how we handle your data, you may have the right to complain to the
+          Information Commissioner’s Office.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="changes-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="changes-heading" class="text-3xl leading-tight text-balance text-primary">
+          Changes to this notice
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          We may update this page when our services or suppliers change. The version on this website
+          is the one that applies when you use the site.
+        </p>
+      </section>
+    </div>
+  </section>
+</BaseLayout>

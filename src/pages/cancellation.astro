@@ -1,0 +1,148 @@
+---
+import { business } from "../config/business";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { paymentSentences } from "../components/home/content";
+import { textLinkClass } from "../lib/fields";
+
+const path = "/cancellation";
+const title = "Cancellation policy";
+const description =
+  "How to cancel or reschedule a fixed-price visit with QuickCert, when a full refund applies, and how refunds are issued in Stripe.";
+const refundRule = paymentSentences[3];
+
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const pageUrl = new URL(path, origin).href;
+const siteUrl = new URL("/", origin).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: `${title} | ${business.shortName}`,
+  description,
+  url: pageUrl,
+  isPartOf: {
+    "@type": "WebSite",
+    name: business.shortName,
+    url: siteUrl,
+  },
+  publisher: {
+    "@type": "Organization",
+    name: business.legalName,
+    url: siteUrl,
+  },
+};
+---
+
+<BaseLayout title={title} description={description} canonicalPath={path} jsonLd={jsonLd}>
+  <section aria-labelledby="cancellation-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">Cancellation</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="cancellation-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        This page applies to fixed-price visits you pay for on Calendly’s checkout. There is no
+        cancel button on this website and no customer login area. To cancel, change the time, or ask
+        what is possible close to the visit, contact us by phone or email.
+      </p>
+
+      <section aria-labelledby="refunds-heading" class="mt-12 max-w-3xl">
+        <h2 id="refunds-heading" class="text-3xl leading-tight text-balance text-primary">
+          Refunds
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">{refundRule}</p>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          Refunds are not automatic on this website. When a refund applies, the team processes it in
+          Stripe back to the same payment method you used.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="how-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="how-heading" class="text-3xl leading-tight text-balance text-primary">
+          How to cancel or reschedule
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          Call or email us with your name, the service, and the appointment time. We will cancel the
+          visit or help you pick a new time.
+        </p>
+        <address class="mt-4 not-italic">
+          <dl class="grid gap-4">
+            <div>
+              <dt class="text-sm font-medium text-on-surface">Phone</dt>
+              <dd>
+                <a href={business.phoneHref} class={textLinkClass}>
+                  {business.phoneDisplay}
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-on-surface">Email</dt>
+              <dd>
+                <a href={`mailto:${business.email}`} class:list={[textLinkClass, "break-words"]}>
+                  {business.email}
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </address>
+      </section>
+
+      <section
+        aria-labelledby="late-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="late-heading" class="text-3xl leading-tight text-balance text-primary">
+          Close to the visit time
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          If the visit is within 24 hours, call or email us. The team will tell you what cancellation
+          or rescheduling is possible for your booking.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="quotes-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="quotes-heading" class="text-3xl leading-tight text-balance text-primary">
+          Electrical work and plumbing quotes
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          If you requested a quote and have not paid, there is nothing to refund.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="related-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="related-heading" class="text-3xl leading-tight text-balance text-primary">
+          Related information
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          Our{" "}
+          <a href="/terms" class={textLinkClass}>terms of service</a> and{" "}
+          <a href="/privacy" class={textLinkClass}>privacy notice</a> explain booking, payment, and
+          how we use your details.
+        </p>
+      </section>
+    </div>
+  </section>
+</BaseLayout>

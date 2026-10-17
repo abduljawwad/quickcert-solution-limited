@@ -1,0 +1,33 @@
+---
+import { business } from "../../config/business";
+import { textLinkClass } from "../../lib/fields";
+import { placeId } from "../../lib/place";
+
+const areaLinkClass =
+  "flex min-h-11 w-full items-center font-semibold text-primary underline decoration-primary/60 underline-offset-4 transition-colors duration-200 hover:decoration-primary";
+---
+
+<section aria-labelledby="coverage-heading">
+  <div class="mx-auto w-full max-w-6xl px-4">
+    <div class="border-t border-outline/40 py-14 lg:py-20">
+    <h2 id="coverage-heading" class="text-3xl leading-tight text-balance text-primary">Areas we cover</h2>
+    <p class="mt-4 text-lg leading-7 text-on-surface">
+      Based in {business.baseTown}. Visits also cover {business.serviceAreaPhrase}.
+    </p>
+    <ul class="mt-8 grid grid-cols-1 border-t border-outline/40 md:grid-cols-2 lg:grid-cols-3">
+      {
+        business.areas.map((area) => (
+          <li class="border-b border-outline/40">
+            <a href={`/areas#${placeId(area)}`} class={areaLinkClass}>
+              {area}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="mt-6">
+      <a href="/areas" class={textLinkClass}>About each area</a>
+    </p>
+    </div>
+  </div>
+</section>

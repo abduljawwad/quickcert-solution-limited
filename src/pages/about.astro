@@ -1,0 +1,137 @@
+---
+import { visitOutcome } from "../components/home/content";
+import { business, openingHoursSpecification, type Service } from "../config/business";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { primaryActionClass } from "../lib/actions";
+import { textLinkClass } from "../lib/fields";
+import { areaServedPlaces } from "../lib/place";
+
+const title = `${business.shortName} in ${business.baseTown}`;
+const description = `${business.shortName} carries out on-site property certificates and compliance reports in ${business.baseTown} for landlords, letting agents, sellers, and small commercial units.`;
+
+const listFormat = new Intl.ListFormat("en-GB", {
+  style: "long",
+  type: "conjunction",
+});
+
+const bookable = business.services.filter(
+  (service): service is Extract<Service, { kind: "book" }> => service.kind === "book",
+);
+
+const quotes = business.services.filter(
+  (service): service is Extract<Service, { kind: "quote" }> => service.kind === "quote",
+);
+
+const visitNames = listFormat.format(bookable.map((service) => service.name));
+const quoteNames = listFormat.format(quotes.map((service) => service.name));
+
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const pageUrl = new URL("/about", origin).href;
+const siteUrl = new URL("/", origin).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: title,
+  url: pageUrl,
+  mainEntity: {
+    "@type": "Organization",
+    name: business.legalName,
+    url: siteUrl,
+    telephone: business.phoneHref.replace(/^tel:/, ""),
+    email: business.email,
+    openingHoursSpecification: openingHoursSpecification(),
+    areaServed: areaServedPlaces(),
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: business.streetAddress,
+      addressLocality: business.baseTown,
+      postalCode: business.postalCode,
+      addressCountry: "GB",
+    },
+  },
+};
+---
+
+<BaseLayout title={title} description={description} canonicalPath="/about" jsonLd={jsonLd}>
+  <section aria-labelledby="about-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">About</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="about-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        {business.legalName} carries out on-site property certificates and compliance reports for
+        landlords, letting agents, sellers, and small commercial units.
+      </p>
+
+      <section aria-labelledby="visit-heading" class="mt-12 max-w-3xl">
+        <h2 id="visit-heading" class="text-3xl leading-tight text-balance text-primary">
+          On a visit
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          There are {bookable.length} fixed-price visits: {visitNames}. {visitOutcome} Prices are on
+          the service pages.
+        </p>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          {quoteNames} are quoted in writing before any payment.
+        </p>
+        <p class="mt-4">
+          <a href="/services" class={textLinkClass}>View services</a>
+        </p>
+      </section>
+
+      <section aria-labelledby="area-heading" class="mt-12 max-w-3xl">
+        <h2 id="area-heading" class="text-3xl leading-tight text-balance text-primary">
+          Where visits run
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          {business.shortName} is based in {business.baseTown}. Visits also cover {business.serviceAreaPhrase}.
+        </p>
+      </section>
+
+      <section aria-labelledby="next-heading" class="mt-12 max-w-3xl border-t border-outline/40 pt-8">
+        <h2 id="next-heading" class="text-3xl leading-tight text-balance text-primary">
+          Book or ask for a quote
+        </h2>
+        <address class="mt-4 not-italic">
+          <dl class="grid gap-4">
+            <div>
+              <dt class="text-sm font-medium text-on-surface">Phone</dt>
+              <dd>
+                <a href={business.phoneHref} class={textLinkClass}>{business.phoneDisplay}</a>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-on-surface">Email</dt>
+              <dd>
+                <a href={`mailto:${business.email}`} class:list={[textLinkClass, "break-words"]}>
+                  {business.email}
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </address>
+        <div class="mt-6">
+          <a href="/services" class:list={[primaryActionClass, "w-full sm:w-auto"]}>
+            Book a visit
+          </a>
+        </div>
+      </section>
+    </div>
+  </section>
+</BaseLayout>

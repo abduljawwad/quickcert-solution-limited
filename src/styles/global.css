@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-600.css";
+@import "@fontsource/inter/latin-700.css";
+@import "@fontsource/newsreader/latin-500.css";
+@import "@fontsource/newsreader/latin-600.css";
+
+@theme {
+  --color-background: #f7fafb;
+  --color-surface: #f7fafb;
+  --color-on-surface: #181c1d;
+  --color-primary: #003531;
+  --color-primary-container: #0e4d48;
+  --color-on-primary: #ffffff;
+  --color-secondary: #9b4500;
+  --color-secondary-container: #fd8a42;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f1f4f5;
+  --color-surface-container: #ebeeef;
+  --color-surface-container-high: #e6e9ea;
+  --color-surface-container-highest: #e0e3e4;
+  --color-outline: #707977;
+  --color-on-surface-variant: #404947;
+  --color-error: #ba1a1a;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Newsreader", ui-serif, Georgia, serif;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-background);
+    color: var(--color-on-surface);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-on-surface);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    font-weight: 500;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+  }
+
+  footer :focus-visible {
+    outline-color: var(--color-on-primary);
+  }
+
+  #main:focus {
+    outline: none;
+  }
+
+  .skip-link {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 50;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: 1rem;
+    border-radius: 0.375rem;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-weight: 600;
+    text-decoration: none;
+    transform: translateY(-150%);
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+}
+
+nav[aria-label="Breadcrumb"] ol {
+  display: block;
+  line-height: 1.75rem;
+}
+
+nav[aria-label="Breadcrumb"] li,
+nav[aria-label="Breadcrumb"] a,
+nav[aria-label="Breadcrumb"] li > span {
+  display: inline;
+  min-height: 0;
+  line-height: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

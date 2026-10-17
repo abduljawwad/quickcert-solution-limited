@@ -1,0 +1,86 @@
+---
+import { business } from "../config/business";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { primaryActionClass } from "../lib/actions";
+import { textLinkClass } from "../lib/fields";
+import { googleReviewHref } from "../lib/review";
+
+export const prerender = true;
+
+const title = "Leave a Google review";
+const description = `Leave a Google review for ${business.shortName}, or call or email the team.`;
+const reviewUrl = googleReviewHref(business.googleReviewUrl);
+---
+
+<BaseLayout title={title} description={description} canonicalPath="/review" noindex>
+  <section aria-labelledby="review-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">Google review</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="review-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        Leave a Google review or get in touch
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        {
+          reviewUrl
+            ? `After your visit, leave a public review on Google, or call or email ${business.shortName}.`
+            : `Call or email ${business.shortName}.`
+        }
+      </p>
+      {
+        reviewUrl === undefined && (
+          <p class="mt-4 max-w-3xl leading-7 text-pretty text-on-surface">
+            The Google review link is added before launch.
+          </p>
+        )
+      }
+
+      {
+        reviewUrl && (
+          <p class="mt-8">
+            <a
+              href={reviewUrl}
+              class:list={[primaryActionClass, "w-full whitespace-normal py-3 text-balance sm:w-auto"]}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Leave a Google review
+              <span class="sr-only"> (opens in a new tab)</span>
+            </a>
+          </p>
+        )
+      }
+      <address class="mt-8 max-w-3xl not-italic">
+        <dl class="grid gap-4">
+          <div>
+            <dt class="text-sm font-medium text-on-surface">Phone</dt>
+            <dd>
+              <a href={business.phoneHref} class={textLinkClass}>{business.phoneDisplay}</a>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-on-surface">Email</dt>
+            <dd>
+              <a href={`mailto:${business.email}`} class:list={[textLinkClass, "break-words"]}>
+                {business.email}
+              </a>
+            </dd>
+          </div>
+        </dl>
+      </address>
+    </div>
+  </section>
+</BaseLayout>

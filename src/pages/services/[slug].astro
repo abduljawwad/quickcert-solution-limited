@@ -1,0 +1,370 @@
+---
+import { visitOutcome } from "../../components/home/content";
+import { business, openingHoursSpecification, type Service } from "../../config/business";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { primaryActionClass } from "../../lib/actions";
+import { errorClass, inputClass, labelClass, textLinkClass, textareaClass } from "../../lib/fields";
+import { areaServedPlaces } from "../../lib/place";
+import { formatPrice } from "../../lib/price";
+import {
+  quoteEmailPattern,
+  quoteFields,
+  quoteNotSavedMessage,
+  quotePhoneDigits,
+  quotePhonePattern,
+} from "../../lib/quote";
+
+type BookableService = Extract<Service, { kind: "book" }>;
+type QuoteService = Extract<Service, { kind: "quote" }>;
+type PageService = BookableService | QuoteService;
+
+export function getStaticPaths() {
+  return business.services
+    .filter((service): service is PageService => service.kind === "book" || service.kind === "quote")
+    .map((service) => ({
+      params: { slug: service.slug },
+      props: { service },
+    }));
+}
+
+interface Props {
+  service: PageService;
+}
+
+function descriptionWithTown(summary: string, town: string): string {
+  if (summary.includes(town)) return summary;
+  const splitAt = summary.indexOf(". ");
+  if (splitAt === -1) return `${summary.replace(/\.$/, "")} in ${town}.`;
+  return `${summary.slice(0, splitAt)} in ${town}. ${summary.slice(splitAt + 2)}`;
+}
+
+const { service } = Astro.props;
+const bookableService = service.kind === "book" ? service : null;
+const quoteService = service.kind === "quote" ? service : null;
+const title = `${service.name} in ${business.baseTown}`;
+const description = `${descriptionWithTown(service.summary, business.baseTown)} Visits also cover ${business.serviceAreaPhrase}.`;
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const siteUrl = new URL("/", origin).href;
+const notSavedMessage = quoteNotSavedMessage();
+const related = business.services.filter(
+  (item): item is BookableService => item.kind === "book" && item.slug !== service.slug,
+);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: service.name,
+  description,
+  areaServed: areaServedPlaces(),
+  provider: {
+    "@type": "ProfessionalService",
+    name: business.legalName,
+    url: siteUrl,
+    openingHoursSpecification: openingHoursSpecification(),
+  },
+  ...(bookableService
+    ? {
+        offers: {
+          "@type": "Offer",
+          price: (bookableService.pricePence / 100).toFixed(2),
+          priceCurrency: "GBP",
+          availability: "https://schema.org/InStock",
+        },
+      }
+    : {}),
+};
+
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath={`/services/${service.slug}`}
+  jsonLd={jsonLd}
+>
+  <section aria-labelledby="service-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <a href="/services" class={textLinkClass}>Services</a>
+          </li>
+          <li class="flex min-w-0 items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">{service.name}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="service-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+
+      <div
+        class:list={[
+          "mt-8 grid grid-cols-1 items-start gap-8 lg:gap-16",
+          bookableService
+            ? "lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]"
+            : "lg:grid-cols-2",
+        ]}
+      >
+        <div class="min-w-0 max-w-3xl">
+          <p class="text-lg leading-7 text-pretty text-on-surface">{service.summary}</p>
+          {
+            bookableService && (
+              <p class="mt-4 text-lg leading-7 text-pretty text-on-surface">{visitOutcome}</p>
+            )
+          }
+          <p class="mt-4 text-lg leading-7 text-pretty text-on-surface">
+            We also cover {business.serviceAreaPhrase}, travelling from {business.baseTown}.{" "}
+            <a href="/areas" class={textLinkClass}>Areas we cover</a>.
+          </p>
+        </div>
+
+        {
+          bookableService && (
+            <aside
+              aria-label="Price and booking"
+              class="border border-outline/40 bg-surface-container-lowest p-5"
+            >
+              <p class="text-4xl font-semibold text-on-surface tabular-nums">
+                {formatPrice(bookableService.pricePence)}
+              </p>
+              <a
+                href={`/book/${bookableService.slug}`}
+                class:list={[primaryActionClass, "mt-6 w-full whitespace-normal py-2 text-balance"]}
+              >
+                Book and pay for {bookableService.name}
+              </a>
+            </aside>
+          )
+        }
+
+        {
+          quoteService && (
+            <form
+              id="quote-form"
+              method="post"
+              action="/api/quote"
+              novalidate
+              data-failure={notSavedMessage}
+              aria-labelledby="service-heading"
+              class="grid min-w-0 grid-cols-1 gap-4 border border-outline/40 bg-surface-container-lowest p-5"
+            >
+              <p class="text-sm text-on-surface-variant">All fields are required.</p>
+              <input type="hidden" name="service" value={quoteService.slug} />
+
+              <div>
+                <label class={labelClass} for="quote-name">{quoteFields.name.label}</label>
+                <input
+                  id="quote-name"
+                  name="name"
+                  type="text"
+                  autocomplete={quoteFields.name.autocomplete}
+                  maxlength={quoteFields.name.max}
+                  required
+                  aria-describedby="quote-name-error"
+                  data-error={quoteFields.name.missing}
+                  class={inputClass}
+                />
+                <p id="quote-name-error" class={errorClass}></p>
+              </div>
+
+              <div>
+                <label class={labelClass} for="quote-email">{quoteFields.email.label}</label>
+                <input
+                  id="quote-email"
+                  name="email"
+                  type="email"
+                  autocomplete={quoteFields.email.autocomplete}
+                  autocapitalize="none"
+                  spellcheck="false"
+                  maxlength={quoteFields.email.max}
+                  required
+                  aria-describedby="quote-email-error"
+                  data-error={quoteFields.email.missing}
+                  data-error-format={quoteFields.email.invalid}
+                  data-format-pattern={quoteEmailPattern}
+                  class={inputClass}
+                />
+                <p id="quote-email-error" class={errorClass}></p>
+              </div>
+
+              <div>
+                <label class={labelClass} for="quote-phone">{quoteFields.phone.label}</label>
+                <input
+                  id="quote-phone"
+                  name="phone"
+                  type="tel"
+                  autocomplete={quoteFields.phone.autocomplete}
+                  maxlength={quoteFields.phone.max}
+                  required
+                  aria-describedby="quote-phone-error"
+                  data-error={quoteFields.phone.missing}
+                  data-error-format={quoteFields.phone.invalid}
+                  data-format-pattern={quotePhonePattern}
+                  data-digits-min={quotePhoneDigits.min}
+                  data-digits-max={quotePhoneDigits.max}
+                  class={inputClass}
+                />
+                <p id="quote-phone-error" class={errorClass}></p>
+              </div>
+
+              <div>
+                <label class={labelClass} for="quote-address">{quoteFields.address.label}</label>
+                <input
+                  id="quote-address"
+                  name="address"
+                  type="text"
+                  autocomplete={quoteFields.address.autocomplete}
+                  maxlength={quoteFields.address.max}
+                  required
+                  aria-describedby="quote-address-error"
+                  data-error={quoteFields.address.missing}
+                  class={inputClass}
+                />
+                <p id="quote-address-error" class={errorClass}></p>
+              </div>
+
+              <div>
+                <label class={labelClass} for="quote-description">
+                  {quoteFields.description.label}
+                </label>
+                <textarea
+                  id="quote-description"
+                  name="description"
+                  rows="5"
+                  maxlength={quoteFields.description.max}
+                  required
+                  aria-describedby="quote-description-error"
+                  data-error={quoteFields.description.missing}
+                  class={textareaClass}
+                ></textarea>
+                <p id="quote-description-error" class={errorClass}></p>
+              </div>
+
+              <div class="sr-only">
+                <label for="company_website">Leave this blank</label>
+                <input
+                  id="company_website"
+                  name="company_website"
+                  type="text"
+                  tabindex="-1"
+                  autocomplete="off"
+                />
+              </div>
+
+              <button type="submit" class:list={[primaryActionClass, "w-full"]}>
+                Request a quote
+              </button>
+              <p
+                id="quote-status"
+                role="status"
+                aria-live="polite"
+                tabindex="-1"
+                data-state="idle"
+                class="text-sm text-on-surface data-[state=error]:text-error"
+              >
+              </p>
+            </form>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="related-services-heading" class="border-t border-outline/40">
+    <div class="mx-auto w-full max-w-6xl px-4 py-14 lg:py-20">
+      <h2 id="related-services-heading" class="text-3xl leading-tight text-balance text-primary">
+        Related services
+      </h2>
+      <ul class="mt-4 max-w-3xl">
+        {
+          related.map((item) => (
+            <li>
+              <a href={`/services/${item.slug}`} class={textLinkClass}>
+                {item.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <script>
+    import {
+      applyFieldErrors,
+      fieldErrorElement,
+      fieldOf,
+      formPayload,
+      messageOf,
+      readJson,
+      setFieldError,
+      writeStatus,
+    } from "../../scripts/form";
+
+    const form = document.getElementById("quote-form");
+    if (form instanceof HTMLFormElement && form.dataset.bound !== "true") {
+      form.dataset.bound = "true";
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        void submitQuote(form);
+      });
+    }
+
+    async function submitQuote(quoteForm: HTMLFormElement): Promise<void> {
+      writeStatus("quote-status", "", true);
+      const firstInvalid = applyFieldErrors(quoteForm);
+      if (firstInvalid) {
+        const error = fieldErrorElement(firstInvalid);
+        writeStatus("quote-status", error?.textContent ?? "", false);
+        firstInvalid.focus();
+        return;
+      }
+
+      const button = quoteForm.querySelector("button[type='submit']");
+      if (button instanceof HTMLButtonElement) button.disabled = true;
+      quoteForm.setAttribute("aria-busy", "true");
+
+      let succeeded = false;
+      try {
+        const response = await fetch("/api/quote", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify(formPayload(quoteForm)),
+        });
+        const body = await readJson(response);
+        const message = messageOf(body) ?? quoteForm.dataset.failure ?? "";
+        const status = writeStatus("quote-status", message, response.ok);
+        succeeded = response.ok;
+        const fieldName = fieldOf(body);
+        const named = fieldName ? quoteForm.elements.namedItem(fieldName) : null;
+        const control =
+          named instanceof HTMLInputElement || named instanceof HTMLTextAreaElement ? named : null;
+        if (!response.ok && control && message) {
+          setFieldError(control, message);
+          control.focus();
+        } else if (status && message) {
+          status.focus();
+        }
+      } catch {
+        const status = writeStatus("quote-status", quoteForm.dataset.failure ?? "", false);
+        status?.focus();
+      } finally {
+        quoteForm.removeAttribute("aria-busy");
+        if (!succeeded && button instanceof HTMLButtonElement) button.disabled = false;
+      }
+    }
+  </script>
+</BaseLayout>

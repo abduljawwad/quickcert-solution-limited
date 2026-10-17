@@ -1,0 +1,217 @@
+---
+import { business } from "../config/business";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { paymentSentences } from "../components/home/content";
+import { textLinkClass } from "../lib/fields";
+
+const path = "/terms";
+const title = "Terms of service";
+const description =
+  "Terms for booking fixed-price property visits and requesting quotes for electrical or plumbing work with QuickCert Solution Limited.";
+
+const listFormat = new Intl.ListFormat("en-GB", {
+  style: "long",
+  type: "conjunction",
+});
+
+const quoteServiceNames = listFormat.format(
+  business.services.filter((service) => service.kind === "quote").map((service) => service.name),
+);
+const bookableCount = business.services.filter((service) => service.kind === "book").length;
+const cancellation = paymentSentences[3];
+
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const pageUrl = new URL(path, origin).href;
+const siteUrl = new URL("/", origin).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: `${title} | ${business.shortName}`,
+  description,
+  url: pageUrl,
+  isPartOf: {
+    "@type": "WebSite",
+    name: business.shortName,
+    url: siteUrl,
+  },
+  publisher: {
+    "@type": "Organization",
+    name: business.legalName,
+    url: siteUrl,
+  },
+};
+---
+
+<BaseLayout title={title} description={description} canonicalPath={path} jsonLd={jsonLd}>
+  <section aria-labelledby="terms-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">Terms</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="terms-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        These terms apply when you use this website to book a visit or request a quote from{" "}
+        {business.legalName}, trading as {business.shortName}. {business.legalName} is registered in{" "}
+        {business.registeredIn} with company number {business.companyNumber}. The registered office
+        is {business.registeredOffice}.
+      </p>
+
+      <section aria-labelledby="services-heading" class="mt-12 max-w-3xl">
+        <h2 id="services-heading" class="text-3xl leading-tight text-balance text-primary">
+          Services and where we work
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          We provide the property certificates and compliance reports described on our{" "}
+          <a href="/services" class={textLinkClass}>services pages</a>, for properties in{" "}
+          {business.serviceAreaPhrase}. Visits are arranged from {business.baseTown}.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="fixed-price-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="fixed-price-heading" class="text-3xl leading-tight text-balance text-primary">
+          Fixed-price visits
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          {bookableCount} services on this site show one fixed price on the service page. That price
+          is the price charged. After you enter your details on our booking form, we send you to
+          Calendly’s website to choose a time and pay. Payment is taken there through Stripe. Your
+          appointment is confirmed only after payment succeeds.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="quote-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="quote-heading" class="text-3xl leading-tight text-balance text-primary">
+          Electrical work and plumbing
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          {quoteServiceNames} are not paid for on this website. You describe the work you need, we
+          reply with a written quote, and payment is taken only after you accept that quote. When you
+          accept, we send a Stripe payment link for the agreed amount.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="details-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="details-heading" class="text-3xl leading-tight text-balance text-primary">
+          Details we ask for
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          To arrange a visit or reply to a quote request, we ask for your name, email, phone number,
+          and the property address. You may add an optional access note, for example who has the
+          keys. We use these details to attend the property and to contact you about your booking or
+          quote.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="report-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="report-heading" class="text-3xl leading-tight text-balance text-primary">
+          Your certificate or report
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          After the visit, the assessor emails the certificate, report, or test results described on
+          the service page. Calendly sends the calendar invite and booking confirmation. Stripe sends
+          the payment receipt for fixed-price visits.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="cancel-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="cancel-heading" class="text-3xl leading-tight text-balance text-primary">
+          Cancellation and refunds
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">{cancellation}</p>
+        <p class="mt-4">
+          <a href="/cancellation" class={textLinkClass}>Cancellation policy</a>
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="privacy-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="privacy-heading" class="text-3xl leading-tight text-balance text-primary">
+          Personal details
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          Our{" "}
+          <a href="/privacy" class={textLinkClass}>privacy notice</a> explains how we use and share
+          the personal details you enter on this website.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="law-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="law-heading" class="text-3xl leading-tight text-balance text-primary">
+          Governing law
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          These terms are governed by the laws of {business.registeredIn}. If a dispute cannot be
+          resolved directly, the courts of {business.registeredIn} have jurisdiction.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="changes-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="changes-heading" class="text-3xl leading-tight text-balance text-primary">
+          Changes and contact
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          We may update this page when our services or how we take payment changes. The version on
+          this website is the one that applies when you use the site.
+        </p>
+        <address class="mt-4 not-italic">
+          <dl class="grid gap-4">
+            <div>
+              <dt class="text-sm font-medium text-on-surface">Phone</dt>
+              <dd>
+                <a href={business.phoneHref} class={textLinkClass}>
+                  {business.phoneDisplay}
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-on-surface">Email</dt>
+              <dd>
+                <a href={`mailto:${business.email}`} class:list={[textLinkClass, "break-words"]}>
+                  {business.email}
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </address>
+      </section>
+    </div>
+  </section>
+</BaseLayout>

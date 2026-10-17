@@ -1,0 +1,104 @@
+---
+import { paymentSentences } from "../../components/home/content";
+import { business } from "../../config/business";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { textLinkClass } from "../../lib/fields";
+
+export const prerender = true;
+
+const title = "Booking confirmed";
+const description = "Confirmation after booking a Coventry property survey.";
+const cancellation = paymentSentences[3];
+---
+
+<BaseLayout title={title} description={description} canonicalPath="/booking/confirmation" noindex>
+  <section aria-labelledby="confirmation-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">Booking confirmed</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="confirmation-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        Your visit is booked
+      </h1>
+
+      <div class="mt-8 max-w-3xl border border-outline/40 bg-surface-container-lowest p-5">
+        <div id="confirmation-details" hidden class="mb-4 grid gap-4">
+          <p id="confirmation-greeting" hidden class="break-words text-lg leading-7 text-on-surface"></p>
+          <p id="confirmation-service" hidden class="break-words leading-7 text-on-surface">
+            Booked service: <span id="confirmation-service-name"></span>
+          </p>
+          <p id="confirmation-time" hidden class="break-words leading-7 text-on-surface">
+            Visit time: <span id="confirmation-time-value"></span>
+          </p>
+        </div>
+
+        <div class="grid gap-4">
+          <p class="leading-7 text-pretty text-on-surface">
+            Check the Calendly confirmation email and the Stripe receipt. Those are the record of the booking and the payment.
+          </p>
+          <p class="leading-7 text-pretty text-on-surface">{cancellation}</p>
+          <address class="not-italic">
+            <dl class="grid gap-4">
+              <div>
+                <dt class="text-sm font-medium text-on-surface">Phone</dt>
+                <dd>
+                  <a href={business.phoneHref} class={textLinkClass}>{business.phoneDisplay}</a>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-on-surface">Email</dt>
+                <dd>
+                  <a href={`mailto:${business.email}`} class:list={[textLinkClass, "break-words"]}>
+                    {business.email}
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </address>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { confirmationFromSearch } from "../../scripts/confirmation";
+
+    const details = confirmationFromSearch(window.location.search);
+    const root = document.getElementById("confirmation-details");
+    const greeting = document.getElementById("confirmation-greeting");
+    const serviceName = document.getElementById("confirmation-service-name");
+    const serviceRow = document.getElementById("confirmation-service");
+    const timeValue = document.getElementById("confirmation-time-value");
+    const timeRow = document.getElementById("confirmation-time");
+
+    let shown = false;
+    if (details.greeting && greeting) {
+      greeting.textContent = details.greeting;
+      greeting.hidden = false;
+      shown = true;
+    }
+    if (details.serviceName && serviceName && serviceRow) {
+      serviceName.textContent = details.serviceName;
+      serviceRow.hidden = false;
+      shown = true;
+    }
+    if (details.visitTime && timeValue && timeRow) {
+      timeValue.textContent = details.visitTime;
+      timeRow.hidden = false;
+      shown = true;
+    }
+    if (shown && root) root.hidden = false;
+  </script>
+</BaseLayout>

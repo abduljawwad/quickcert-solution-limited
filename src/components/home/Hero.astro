@@ -1,0 +1,40 @@
+---
+import { business, type Service } from "../../config/business";
+import { primaryActionClass, secondaryActionClass } from "../../lib/actions";
+import { textLinkClass } from "../../lib/fields";
+import { formatPrice } from "../../lib/price";
+
+const domesticEpc = business.services.find(
+  (service): service is Extract<Service, { kind: "book" }> =>
+    service.slug === "epc-domestic" && service.kind === "book",
+);
+
+if (!domesticEpc) {
+  throw new Error("business.ts must include a bookable service with slug epc-domestic.");
+}
+
+const domesticEpcPrice = formatPrice(domesticEpc.pricePence);
+---
+
+<section aria-labelledby="hero-heading">
+  <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+    <h1
+      id="hero-heading"
+      class="max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+    >
+      EPCs and property certificates for landlords and sellers in {business.baseTown}.
+    </h1>
+    <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+      A domestic EPC is {domesticEpcPrice}. Legionella and fire risk assessments, inventories, and
+      PAT testing are priced here too. We email the report. Pay by card, Apple Pay, or Google Pay.
+    </p>
+    <p class="mt-4 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+      Visits from {business.baseTown} also cover {business.serviceAreaPhrase}.{" "}
+      <a href="/areas" class={textLinkClass}>See the areas we cover</a>.
+    </p>
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <a href="#services" class:list={[primaryActionClass, "w-full sm:w-auto"]}>Book a visit</a>
+      <a href="/services" class:list={[secondaryActionClass, "w-full sm:w-auto"]}>View services</a>
+    </div>
+  </div>
+</section>

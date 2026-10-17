@@ -1,0 +1,40 @@
+---
+const audiences = [
+  {
+    title: "Landlords",
+    text: "Certificates and reports for homes you let.",
+  },
+  {
+    title: "Letting agents",
+    text: "The same certificates and reports for properties you manage.",
+  },
+  {
+    title: "Sellers",
+    text: "An energy certificate when you sell a home.",
+  },
+  {
+    title: "Small businesses",
+    text: "Certificates and appliance testing for small business premises.",
+  },
+] as const;
+---
+
+<section aria-labelledby="audience-heading">
+  <div class="mx-auto w-full max-w-6xl px-4">
+    <div class="border-t border-outline/40 py-14 lg:py-20">
+    <h2 id="audience-heading" class="text-3xl leading-tight text-balance text-primary">
+      Who it is for
+    </h2>
+    <ul class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {
+        audiences.map((audience) => (
+          <li class="border border-outline/40 bg-surface-container-lowest p-5">
+            <h3 class="text-2xl leading-tight text-primary">{audience.title}</h3>
+            <p class="mt-3 leading-7 text-on-surface">{audience.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+    </div>
+  </div>
+</section>

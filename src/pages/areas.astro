@@ -1,0 +1,217 @@
+---
+import { business } from "../config/business";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { primaryActionClass, secondaryActionClass } from "../lib/actions";
+import { textLinkClass } from "../lib/fields";
+import { placeId } from "../lib/place";
+
+const title = `EPC and property certificates in ${business.baseTown} and the West Midlands`;
+
+const listFormat = new Intl.ListFormat("en-GB", {
+  style: "long",
+  type: "conjunction",
+});
+
+const description = `Domestic and commercial EPCs in ${business.baseTown}, with visits across ${business.serviceAreaPhrase}.`;
+
+const bookableCount = business.services.filter((service) => service.kind === "book").length;
+const quoteNames = listFormat.format(
+  business.services.filter((service) => service.kind === "quote").map((service) => service.name),
+);
+const quoteCount = business.services.filter((service) => service.kind === "quote").length;
+
+/**
+ * Plain geography for the places currently in config.
+ * Used only while the base is Coventry, so a renamed base does not keep these directions.
+ */
+function directionNote(name: string): string | undefined {
+  if (business.baseTown !== "Coventry") return undefined;
+
+  const notes: Record<string, string> = {
+    Bedworth: `Bedworth is a town immediately north of ${business.baseTown}.`,
+    Kenilworth: `Kenilworth is a town south of ${business.baseTown}.`,
+    Warwick: `Warwick is a town south of ${business.baseTown}, past Kenilworth.`,
+    "Royal Leamington Spa": `Royal Leamington Spa is a town south of ${business.baseTown}, beside Warwick.`,
+    Rugby: `Rugby is a town east of ${business.baseTown}.`,
+    Nuneaton: `Nuneaton is a town north of ${business.baseTown}, beyond Bedworth.`,
+    Earlsdon: `Earlsdon is a district in the south-west of ${business.baseTown}.`,
+    Finham: `Finham is a district in the south of ${business.baseTown}.`,
+    "Tile Hill": `Tile Hill is a district in the west of ${business.baseTown}.`,
+    Birmingham: `Birmingham is the largest city in the West Midlands, west of ${business.baseTown}.`,
+    Solihull: `Solihull sits between Birmingham and ${business.baseTown}.`,
+    Wolverhampton: "Wolverhampton is in the West Midlands, north-west of Birmingham.",
+    Walsall: "Walsall is in the West Midlands, north of Birmingham.",
+    Dudley: "Dudley is in the West Midlands, west of Birmingham.",
+    "West Bromwich": "West Bromwich is in Sandwell, north-west of Birmingham.",
+    Leicester: `Leicester is a city east of ${business.baseTown}.`,
+    Nottingham: `Nottingham is north-east of ${business.baseTown}, beyond Leicester.`,
+    Peterborough: "Peterborough is east of Leicester.",
+    London: `London is covered by visits arranged from the ${business.baseTown} office.`,
+  };
+
+  return Object.hasOwn(notes, name) ? notes[name] : undefined;
+}
+
+function paragraphsFor(name: string): readonly string[] {
+  const servicesLine = `Domestic and commercial EPCs, and the other services on this site, are available in ${name}.`;
+
+  if (name === business.baseTown) {
+    return [
+      `${name} is the base.`,
+      `Visits in ${name}, and visits to every other place on this page, are dispatched from here.`,
+      servicesLine,
+    ];
+  }
+
+  return [
+    directionNote(name) ?? `${name} is covered from ${business.baseTown}.`,
+    `Visits in ${name} are dispatched from ${business.baseTown}.`,
+    servicesLine,
+  ];
+}
+
+const places = business.areas.map((name) => ({
+  name,
+  id: placeId(name),
+  paragraphs: paragraphsFor(name),
+}));
+
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const pageUrl = new URL("/areas", origin).href;
+const siteUrl = new URL("/", origin).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: title,
+  description,
+  url: pageUrl,
+  mainEntity: {
+    "@type": "Service",
+    name: `Property certificates and reports in ${business.baseTown}`,
+    provider: {
+      "@type": "Organization",
+      name: business.legalName,
+      url: siteUrl,
+    },
+    areaServed: [...business.areas],
+  },
+};
+---
+
+<BaseLayout title={title} description={description} canonicalPath="/areas" jsonLd={jsonLd}>
+  <section aria-labelledby="areas-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">Areas we cover</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="areas-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        {business.legalName} is based in {business.baseTown}. Visits are dispatched from {business.baseTown}
+        across {business.serviceAreaPhrase}. The cities named below are the main places people search
+        for. The rest of the West Midlands is covered from {business.baseTown} as well. An assessor
+        travels from {business.baseTown} to the property and emails the certificate or report.
+      </p>
+      <p class="mt-4 max-w-3xl leading-7 text-pretty text-on-surface">
+        The services are the same in each place. Prices for fixed visits are on the service pages.
+      </p>
+
+      <section aria-labelledby="places-heading" class="mt-12">
+        <h2 id="places-heading" class="text-3xl leading-tight text-balance text-primary">
+          Places covered
+        </h2>
+        <p class="mt-4 max-w-3xl leading-7 text-pretty text-on-surface">
+          Each place below is visited from {business.baseTown}.
+        </p>
+        <ul class="mt-6 grid grid-cols-1 border-t border-outline/40 sm:grid-cols-2 lg:grid-cols-3">
+          {
+            places.map((place) => (
+              <li class="border-b border-outline/40">
+                <a href={`#${place.id}`} class:list={[textLinkClass, "flex min-h-11 w-full items-center"]}>
+                  {place.name}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <div class="mt-4 max-w-3xl">
+          {
+            places.map((place) => (
+              <section aria-labelledby={place.id} class="border-t border-outline/40 py-8">
+                <h3
+                  id={place.id}
+                  class="scroll-mt-6 text-2xl leading-tight text-balance text-primary"
+                >
+                  {place.name}
+                </h3>
+                {place.paragraphs.map((paragraph) => (
+                  <p class="mt-4 leading-7 text-pretty text-on-surface">{paragraph}</p>
+                ))}
+              </section>
+            ))
+          }
+        </div>
+      </section>
+
+      <section
+        aria-labelledby="services-heading"
+        class="mt-4 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="services-heading" class="text-3xl leading-tight text-balance text-primary">
+          Services in these places
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          The same services are available in every place listed above.
+        </p>
+        <ul class="mt-2 grid grid-cols-1 sm:grid-cols-2">
+          {
+            business.services.map((service) => (
+              <li>
+                <a
+                  href={`/services/${service.slug}`}
+                  class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+                >
+                  {service.name}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          {
+            bookableCount === 1
+              ? "1 fixed-price visit has a price on the service page."
+              : `${bookableCount} fixed-price visits have a price on the service page.`
+          }
+          {
+            quoteCount > 0 &&
+              ` ${quoteNames} ${quoteCount === 1 ? "is" : "are"} quoted in writing before any payment.`
+          }
+        </p>
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <a href="/services" class:list={[primaryActionClass, "w-full sm:w-auto"]}>
+            View services
+          </a>
+          <a href="/contact" class:list={[secondaryActionClass, "w-full sm:w-auto"]}>
+            Contact {business.shortName}
+          </a>
+        </div>
+      </section>
+    </div>
+  </section>
+</BaseLayout>

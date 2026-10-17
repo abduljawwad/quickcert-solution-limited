@@ -1,0 +1,285 @@
+---
+import { paymentSentences, visitOutcome } from "../../components/home/content";
+import { business } from "../../config/business";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { primaryActionClass } from "../../lib/actions";
+import { errorClass, inputClass, labelClass, textLinkClass, textareaClass } from "../../lib/fields";
+import { accessNoteField, leadNotSavedMessage, type BookableService } from "../../lib/lead";
+import { formatPrice } from "../../lib/price";
+import {
+  quoteEmailPattern,
+  quoteFields,
+  quotePhoneDigits,
+  quotePhonePattern,
+} from "../../lib/quote";
+
+export function getStaticPaths() {
+  return business.services
+    .filter((service): service is BookableService => service.kind === "book")
+    .map((service) => ({
+      params: { slug: service.slug },
+      props: { service },
+    }));
+}
+
+interface Props {
+  service: BookableService;
+}
+
+const { service } = Astro.props;
+const title = `Book ${service.name} in ${business.baseTown}`;
+const description = `Book ${service.name} in ${business.baseTown} for ${formatPrice(service.pricePence)}.`;
+const cancellation = paymentSentences[3];
+const notSavedMessage = leadNotSavedMessage();
+---
+
+<BaseLayout title={title} description={description} canonicalPath={`/book/${service.slug}`} noindex>
+  <section aria-labelledby="book-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <a href="/services" class={textLinkClass}>Services</a>
+          </li>
+          <li class="flex min-w-0 items-center gap-x-2">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <a href={`/services/${service.slug}`} class={textLinkClass}>{service.name}</a>
+          </li>
+          <li class="flex items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">Book</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="book-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+
+      <p class="mt-8 text-4xl font-semibold text-on-surface tabular-nums">
+        {formatPrice(service.pricePence)}
+      </p>
+      <p class="mt-4 max-w-3xl leading-7 text-pretty text-on-surface">{visitOutcome}</p>
+      <p class="mt-4 max-w-3xl leading-7 text-pretty text-on-surface">{cancellation}</p>
+
+      <form
+        id="book-form"
+        method="post"
+        action="/api/lead"
+        novalidate
+        data-failure={notSavedMessage}
+        aria-labelledby="book-heading"
+        class="mt-8 grid w-full max-w-xl grid-cols-1 gap-4 border border-outline/40 bg-surface-container-lowest p-5"
+      >
+        <input type="hidden" name="service" value={service.slug} />
+
+        <div>
+          <label class={labelClass} for="book-name">{quoteFields.name.label}</label>
+          <input
+            id="book-name"
+            name="name"
+            type="text"
+            autocomplete={quoteFields.name.autocomplete}
+            maxlength={quoteFields.name.max}
+            required
+            aria-describedby="book-name-error"
+            data-error={quoteFields.name.missing}
+            class={inputClass}
+          />
+          <p id="book-name-error" class={errorClass}></p>
+        </div>
+
+        <div>
+          <label class={labelClass} for="book-email">{quoteFields.email.label}</label>
+          <input
+            id="book-email"
+            name="email"
+            type="email"
+            autocomplete={quoteFields.email.autocomplete}
+            autocapitalize="none"
+            spellcheck="false"
+            maxlength={quoteFields.email.max}
+            required
+            aria-describedby="book-email-error"
+            data-error={quoteFields.email.missing}
+            data-error-format={quoteFields.email.invalid}
+            data-format-pattern={quoteEmailPattern}
+            class={inputClass}
+          />
+          <p id="book-email-error" class={errorClass}></p>
+        </div>
+
+        <div>
+          <label class={labelClass} for="book-phone">{quoteFields.phone.label}</label>
+          <input
+            id="book-phone"
+            name="phone"
+            type="tel"
+            autocomplete={quoteFields.phone.autocomplete}
+            maxlength={quoteFields.phone.max}
+            required
+            aria-describedby="book-phone-error"
+            data-error={quoteFields.phone.missing}
+            data-error-format={quoteFields.phone.invalid}
+            data-format-pattern={quotePhonePattern}
+            data-digits-min={quotePhoneDigits.min}
+            data-digits-max={quotePhoneDigits.max}
+            class={inputClass}
+          />
+          <p id="book-phone-error" class={errorClass}></p>
+        </div>
+
+        <div>
+          <label class={labelClass} for="book-address">{quoteFields.address.label}</label>
+          <input
+            id="book-address"
+            name="address"
+            type="text"
+            autocomplete={quoteFields.address.autocomplete}
+            maxlength={quoteFields.address.max}
+            required
+            aria-describedby="book-address-error"
+            data-error={quoteFields.address.missing}
+            class={inputClass}
+          />
+          <p id="book-address-error" class={errorClass}></p>
+        </div>
+
+        <div>
+          <label class={labelClass} for="book-access">{accessNoteField.label}</label>
+          <textarea
+            id="book-access"
+            name="access_note"
+            rows="4"
+            maxlength={accessNoteField.max}
+            aria-describedby="book-access-hint book-access-error"
+            data-error=""
+            class={textareaClass}
+          ></textarea>
+          <p id="book-access-hint" class="mt-1 text-sm text-on-surface-variant">
+            {accessNoteField.hint}
+          </p>
+          <p id="book-access-error" class={errorClass}></p>
+        </div>
+
+        <div class="sr-only">
+          <label for="company_website">Leave this blank</label>
+          <input
+            id="company_website"
+            name="company_website"
+            type="text"
+            tabindex="-1"
+            autocomplete="off"
+          />
+        </div>
+
+        <p class="text-sm leading-6 text-on-surface">
+          These details are saved so the visit can go ahead, and so we can follow up if you do not finish.
+        </p>
+
+        <button type="submit" class:list={[primaryActionClass, "w-full"]}>
+          Choose a time and pay
+        </button>
+        <p
+          id="book-status"
+          role="status"
+          aria-live="polite"
+          tabindex="-1"
+          data-state="idle"
+          class="text-sm text-on-surface data-[state=error]:text-error"
+        >
+        </p>
+      </form>
+    </div>
+  </section>
+
+  <script>
+    import {
+      applyFieldErrors,
+      fieldErrorElement,
+      fieldOf,
+      formPayload,
+      messageOf,
+      readJson,
+      redirectOf,
+      setFieldError,
+      writeStatus,
+    } from "../../scripts/form";
+
+    const form = document.getElementById("book-form");
+    if (form instanceof HTMLFormElement && form.dataset.bound !== "true") {
+      form.dataset.bound = "true";
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        void submitBooking(form);
+      });
+    }
+
+    async function submitBooking(bookForm: HTMLFormElement): Promise<void> {
+      writeStatus("book-status", "", true);
+      const firstInvalid = applyFieldErrors(bookForm);
+      if (firstInvalid) {
+        const error = fieldErrorElement(firstInvalid);
+        writeStatus("book-status", error?.textContent ?? "", false);
+        firstInvalid.focus();
+        return;
+      }
+
+      const button = bookForm.querySelector("button[type='submit']");
+      if (button instanceof HTMLButtonElement) button.disabled = true;
+      bookForm.setAttribute("aria-busy", "true");
+
+      let succeeded = false;
+      try {
+        const response = await fetch("/api/lead", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify(formPayload(bookForm)),
+        });
+        const body = await readJson(response);
+        if (response.ok) {
+          const redirect = redirectOf(body);
+          if (redirect) {
+            succeeded = true;
+            window.location.href = redirect;
+            return;
+          }
+          const message = messageOf(body) ?? "";
+          const status = writeStatus("book-status", message, true);
+          succeeded = true;
+          if (status && message) status.focus();
+          return;
+        }
+
+        const message = messageOf(body) ?? bookForm.dataset.failure ?? "";
+        const status = writeStatus("book-status", message, false);
+        const fieldName = fieldOf(body);
+        const named = fieldName ? bookForm.elements.namedItem(fieldName) : null;
+        const control =
+          named instanceof HTMLInputElement || named instanceof HTMLTextAreaElement ? named : null;
+        if (control && message) {
+          setFieldError(control, message);
+          control.focus();
+        } else if (status && message) {
+          status.focus();
+        }
+      } catch {
+        const status = writeStatus("book-status", bookForm.dataset.failure ?? "", false);
+        status?.focus();
+      } finally {
+        bookForm.removeAttribute("aria-busy");
+        if (!succeeded && button instanceof HTMLButtonElement) button.disabled = false;
+      }
+    }
+  </script>
+</BaseLayout>
