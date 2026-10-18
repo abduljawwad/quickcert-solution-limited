@@ -29,11 +29,17 @@ const { title, description, canonicalPath, jsonLd, noindex = false } = Astro.pro
     />
   </head>
   <body class="flex min-h-dvh flex-col">
+    <div id="nav-progress" class="nav-progress" data-state="idle" aria-hidden="true"></div>
     <a class="skip-link" href="#main">Skip to content</a>
     <Header />
     <main id="main" tabindex="-1" class="flex-1">
       <slot />
     </main>
     <Footer />
+    <script>
+      import { bindClickFeedback } from "../scripts/click-feedback";
+
+      bindClickFeedback();
+    </script>
   </body>
 </html>

@@ -1,0 +1,142 @@
+---
+import { guideByHref } from "../../components/guides/catalogue";
+import { business } from "../../config/business";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { primaryActionClass, secondaryActionClass } from "../../lib/actions";
+import { textLinkClass } from "../../lib/fields";
+
+const guide = guideByHref("/guides/pat-testing-for-landlords");
+const path = guide.href;
+const title = guide.title;
+const description = guide.description;
+
+function serviceBySlug(slug: string) {
+  const service = business.services.find((item) => item.slug === slug);
+  if (!service) {
+    throw new Error(`Missing service: ${slug}`);
+  }
+  return service;
+}
+
+const pat = serviceBySlug("pat-testing");
+const electrical = serviceBySlug("electrical");
+
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const pageUrl = new URL(path, origin).href;
+const siteUrl = new URL("/", origin).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description,
+  url: pageUrl,
+  author: {
+    "@type": "Organization",
+    name: business.legalName,
+    url: siteUrl,
+  },
+};
+---
+
+<BaseLayout title={title} description={description} canonicalPath={path} jsonLd={jsonLd}>
+  <section aria-labelledby="guide-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <a href="/guides" class={textLinkClass}>Guides</a>
+          </li>
+          <li class="flex min-w-0 items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">{guide.label}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="guide-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        PAT testing checks portable electrical appliances. For a landlord, that means the plug-in
+        appliances supplied with the rented home. This is general guidance, not legal advice.
+      </p>
+
+      <section aria-labelledby="tested-heading" class="mt-12 max-w-3xl">
+        <h2 id="tested-heading" class="text-3xl leading-tight text-balance text-primary">
+          What is tested
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          The assessor tests appliances that plug in, such as a kettle, a toaster, a lamp, or a
+          similar item supplied in the home. Small businesses can book the same visit for portable
+          appliances at their premises. The results are emailed after the visit.
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="eicr-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="eicr-heading" class="text-3xl leading-tight text-balance text-primary">
+          Fixed wiring and an EICR
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          PAT testing covers the portable appliances. An electrical installation condition report
+          (EICR) is a written report on the fixed electrical installation. An EICR is electrical
+          work. It is priced in writing before any payment, and there is no payment for it on this
+          website.
+        </p>
+        <p class="mt-4">
+          <a
+            href={`/services/${electrical.slug}`}
+            class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+          >
+            {electrical.name} in {business.baseTown}
+          </a>
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="receive-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="receive-heading" class="text-3xl leading-tight text-balance text-primary">
+          What you receive
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          You receive the PAT testing results by email. The price on the PAT testing page is the
+          price charged for that visit. You book and pay on that page.
+        </p>
+        <p class="mt-4">
+          <a href="/guides/landlord-compliance-checklist" class={textLinkClass}>
+            Which services a landlord may need
+          </a>
+        </p>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          {business.shortName} is based in {business.baseTown}. Visits also cover {business.serviceAreaPhrase}.
+        </p>
+        <p class="mt-4">
+          <a href="/areas" class={textLinkClass}>Areas we cover</a>
+          <span class="text-on-surface-variant"> · </span>
+          <a href="/guides" class={textLinkClass}>All guides</a>
+        </p>
+      </section>
+
+      <div class="mt-8 flex max-w-3xl flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <a href={`/services/${pat.slug}`} class:list={[primaryActionClass, "w-full sm:w-auto"]}>
+          View PAT testing
+        </a>
+        <a href="/contact" class:list={[secondaryActionClass, "w-full sm:w-auto"]}>
+          Contact {business.shortName}
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

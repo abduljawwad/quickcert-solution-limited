@@ -1,5 +1,8 @@
 ---
 import { visitOutcome } from "../../components/home/content";
+import PropertyAddressFields from "../../components/PropertyAddressFields.astro";
+import { copyFor } from "../../components/services/copy";
+import ServiceExplanation from "../../components/services/ServiceExplanation.astro";
 import { business, openingHoursSpecification, type Service } from "../../config/business";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { primaryActionClass } from "../../lib/actions";
@@ -7,6 +10,7 @@ import { errorClass, inputClass, labelClass, textLinkClass, textareaClass } from
 import { areaServedPlaces } from "../../lib/place";
 import { formatPrice } from "../../lib/price";
 import {
+  quoteDescriptionCopy,
   quoteEmailPattern,
   quoteFields,
   quoteNotSavedMessage,
@@ -31,24 +35,22 @@ interface Props {
   service: PageService;
 }
 
-function descriptionWithTown(summary: string, town: string): string {
-  if (summary.includes(town)) return summary;
-  const splitAt = summary.indexOf(". ");
-  if (splitAt === -1) return `${summary.replace(/\.$/, "")} in ${town}.`;
-  return `${summary.slice(0, splitAt)} in ${town}. ${summary.slice(splitAt + 2)}`;
-}
-
 const { service } = Astro.props;
 const bookableService = service.kind === "book" ? service : null;
 const quoteService = service.kind === "quote" ? service : null;
 const title = `${service.name} in ${business.baseTown}`;
-const description = `${descriptionWithTown(service.summary, business.baseTown)} Visits also cover ${business.serviceAreaPhrase}.`;
+const description = copyFor(service.slug).description;
 const origin = Astro.site ?? new URL(Astro.url.origin);
 const siteUrl = new URL("/", origin).href;
 const notSavedMessage = quoteNotSavedMessage();
 const related = business.services.filter(
   (item): item is BookableService => item.kind === "book" && item.slug !== service.slug,
 );
+const otherQuote = quoteService
+  ? (business.services.find(
+      (item): item is QuoteService => item.kind === "quote" && item.slug !== quoteService.slug,
+    ) ?? null)
+  : null;
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -122,10 +124,6 @@ const jsonLd = {
               <p class="mt-4 text-lg leading-7 text-pretty text-on-surface">{visitOutcome}</p>
             )
           }
-          <p class="mt-4 text-lg leading-7 text-pretty text-on-surface">
-            We also cover {business.serviceAreaPhrase}, travelling from {business.baseTown}.{" "}
-            <a href="/areas" class={textLinkClass}>Areas we cover</a>.
-          </p>
         </div>
 
         {
@@ -158,6 +156,15 @@ const jsonLd = {
               aria-labelledby="service-heading"
               class="grid min-w-0 grid-cols-1 gap-4 border border-outline/40 bg-surface-container-lowest p-5"
             >
+              {
+                otherQuote && (
+                  <p class="text-sm leading-6 text-pretty">
+                    <a href={`/services/${otherQuote.slug}#quote-form`} class={textLinkClass}>
+                      Get a quote for {otherQuote.name.toLowerCase()} instead
+                    </a>
+                  </p>
+                )
+              }
               <p class="text-sm text-on-surface-variant">All fields are required.</p>
               <input type="hidden" name="service" value={quoteService.slug} />
 
@@ -217,25 +224,11 @@ const jsonLd = {
                 <p id="quote-phone-error" class={errorClass}></p>
               </div>
 
-              <div>
-                <label class={labelClass} for="quote-address">{quoteFields.address.label}</label>
-                <input
-                  id="quote-address"
-                  name="address"
-                  type="text"
-                  autocomplete={quoteFields.address.autocomplete}
-                  maxlength={quoteFields.address.max}
-                  required
-                  aria-describedby="quote-address-error"
-                  data-error={quoteFields.address.missing}
-                  class={inputClass}
-                />
-                <p id="quote-address-error" class={errorClass}></p>
-              </div>
+              <PropertyAddressFields idPrefix="quote" />
 
               <div>
                 <label class={labelClass} for="quote-description">
-                  {quoteFields.description.label}
+                  {quoteDescriptionCopy(quoteService.slug).label}
                 </label>
                 <textarea
                   id="quote-description"
@@ -244,7 +237,7 @@ const jsonLd = {
                   maxlength={quoteFields.description.max}
                   required
                   aria-describedby="quote-description-error"
-                  data-error={quoteFields.description.missing}
+                  data-error={quoteDescriptionCopy(quoteService.slug).missing}
                   class={textareaClass}
                 ></textarea>
                 <p id="quote-description-error" class={errorClass}></p>
@@ -277,6 +270,8 @@ const jsonLd = {
           )
         }
       </div>
+
+      <ServiceExplanation slug={service.slug} />
     </div>
   </section>
 
@@ -301,13 +296,19 @@ const jsonLd = {
 
   <script>
     import {
+      beginPendingSubmit,
+      markPressed,
+      releasePressedControl,
+      restoreSubmit,
+      submitButton,
+    } from "../../scripts/click-feedback";
+    import {
       applyFieldErrors,
+      applyServerFieldErrors,
       fieldErrorElement,
-      fieldOf,
       formPayload,
       messageOf,
       readJson,
-      setFieldError,
       writeStatus,
     } from "../../scripts/form";
 
@@ -316,23 +317,25 @@ const jsonLd = {
       form.dataset.bound = "true";
       form.addEventListener("submit", (event) => {
         event.preventDefault();
+        const button = submitButton(form);
+        if (button) markPressed(button);
         void submitQuote(form);
       });
     }
 
     async function submitQuote(quoteForm: HTMLFormElement): Promise<void> {
+      const button = submitButton(quoteForm);
       writeStatus("quote-status", "", true);
       const firstInvalid = applyFieldErrors(quoteForm);
       if (firstInvalid) {
         const error = fieldErrorElement(firstInvalid);
         writeStatus("quote-status", error?.textContent ?? "", false);
         firstInvalid.focus();
+        if (button) releasePressedControl(button);
         return;
       }
 
-      const button = quoteForm.querySelector("button[type='submit']");
-      if (button instanceof HTMLButtonElement) button.disabled = true;
-      quoteForm.setAttribute("aria-busy", "true");
+      if (button) beginPendingSubmit(button, "Sending…");
 
       let succeeded = false;
       try {
@@ -348,22 +351,14 @@ const jsonLd = {
         const message = messageOf(body) ?? quoteForm.dataset.failure ?? "";
         const status = writeStatus("quote-status", message, response.ok);
         succeeded = response.ok;
-        const fieldName = fieldOf(body);
-        const named = fieldName ? quoteForm.elements.namedItem(fieldName) : null;
-        const control =
-          named instanceof HTMLInputElement || named instanceof HTMLTextAreaElement ? named : null;
-        if (!response.ok && control && message) {
-          setFieldError(control, message);
-          control.focus();
-        } else if (status && message) {
-          status.focus();
-        }
+        const control = response.ok ? null : applyServerFieldErrors(quoteForm, body);
+        if (control) control.focus();
+        else if (status && message) status.focus();
       } catch {
         const status = writeStatus("quote-status", quoteForm.dataset.failure ?? "", false);
         status?.focus();
       } finally {
-        quoteForm.removeAttribute("aria-busy");
-        if (!succeeded && button instanceof HTMLButtonElement) button.disabled = false;
+        if (button) restoreSubmit(button, succeeded);
       }
     }
   </script>

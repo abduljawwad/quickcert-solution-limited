@@ -1,0 +1,72 @@
+---
+import { textLinkClass } from "../../lib/fields";
+import { copyFor, coverageParagraphs } from "./copy";
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const copy = copyFor(slug);
+const where = coverageParagraphs();
+
+const headingClass = "text-2xl leading-tight text-balance text-primary";
+const paragraphClass = "mt-4 leading-7 text-pretty text-on-surface";
+---
+
+<div class="mt-10 max-w-3xl border-t border-outline/40 pt-8">
+  <section aria-labelledby="what-heading">
+    <h2 id="what-heading" class={headingClass}>What the visit is</h2>
+    {copy.what.map((paragraph) => <p class={paragraphClass}>{paragraph}</p>)}
+    {
+      copy.also && copy.also.length > 0 && (
+        <ul class="mt-2">
+          {copy.also.map((item) => (
+            <li>
+              <a href={item.href} class:list={[textLinkClass, "max-w-full whitespace-normal"]}>
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+
+  <section aria-labelledby="who-heading" class="mt-8">
+    <h2 id="who-heading" class={headingClass}>Who it is for</h2>
+    {copy.who.map((paragraph) => <p class={paragraphClass}>{paragraph}</p>)}
+  </section>
+
+  <section aria-labelledby="receive-heading" class="mt-8">
+    <h2 id="receive-heading" class={headingClass}>What you receive</h2>
+    {copy.receive.map((paragraph) => <p class={paragraphClass}>{paragraph}</p>)}
+  </section>
+
+  {
+    copy.guides.length > 0 && (
+      <section aria-labelledby="read-heading" class="mt-8">
+        <h2 id="read-heading" class={headingClass}>
+          Read more
+        </h2>
+        <ul class="mt-2">
+          {copy.guides.map((item) => (
+            <li>
+              <a href={item.href} class:list={[textLinkClass, "max-w-full whitespace-normal"]}>
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section aria-labelledby="where-heading" class="mt-8">
+    <h2 id="where-heading" class={headingClass}>Where we visit</h2>
+    {where.map((paragraph) => <p class={paragraphClass}>{paragraph}</p>)}
+    <p class="mt-4">
+      <a href="/areas" class={textLinkClass}>Areas we cover</a>
+    </p>
+  </section>
+</div>

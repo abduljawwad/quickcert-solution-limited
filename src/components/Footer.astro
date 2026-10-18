@@ -1,6 +1,6 @@
 ---
 import { business } from "../config/business";
-import { legalNav, serviceLinks } from "../config/nav";
+import { guideLinks, legalNav, serviceLinks } from "../config/nav";
 import { googleReviewHref } from "../lib/review";
 
 const areaLine = new Intl.ListFormat("en-GB", {
@@ -58,6 +58,21 @@ const textLinkClass =
     <div class="sm:col-span-2 lg:col-span-1">
       <h2 class="text-xl font-semibold">Areas we cover</h2>
       <p class="mt-3 text-sm leading-6">{areaLine}</p>
+
+      <nav aria-label="Guides" class="mt-8">
+        <h2 class="text-xl font-semibold">Guides</h2>
+        <ul class="mt-2">
+          {
+            guideLinks.map((link) => (
+              <li>
+                <a href={link.href} class={textLinkClass}>
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
 
       <nav aria-label="Policies" class="mt-8">
         <h2 class="text-xl font-semibold">Policies</h2>

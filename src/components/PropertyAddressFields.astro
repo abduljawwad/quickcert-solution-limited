@@ -1,0 +1,84 @@
+---
+import { addressFields, ukPostcodePattern } from "../lib/address";
+import { errorClass, inputClass, labelClass } from "../lib/fields";
+
+interface Props {
+  idPrefix: string;
+}
+
+const { idPrefix } = Astro.props;
+---
+
+<fieldset class="m-0 min-w-0 border-0 p-0">
+  <legend class:list={[labelClass, "mb-4 px-0"]}>Property address</legend>
+  <div class="grid grid-cols-1 gap-4">
+    <div>
+      <label class={labelClass} for={`${idPrefix}-number`}>{addressFields.number.label}</label>
+      <input
+        id={`${idPrefix}-number`}
+        name="number"
+        type="text"
+        autocomplete={addressFields.number.autocomplete}
+        maxlength={addressFields.number.max}
+        required
+        aria-describedby={`${idPrefix}-number-error`}
+        data-error={addressFields.number.missing}
+        class={inputClass}
+      />
+      <p id={`${idPrefix}-number-error`} class={errorClass}></p>
+    </div>
+
+    <div>
+      <label class={labelClass} for={`${idPrefix}-street`}>{addressFields.street.label}</label>
+      <input
+        id={`${idPrefix}-street`}
+        name="street"
+        type="text"
+        autocomplete={addressFields.street.autocomplete}
+        maxlength={addressFields.street.max}
+        required
+        aria-describedby={`${idPrefix}-street-error`}
+        data-error={addressFields.street.missing}
+        class={inputClass}
+      />
+      <p id={`${idPrefix}-street-error`} class={errorClass}></p>
+    </div>
+
+    <div>
+      <label class={labelClass} for={`${idPrefix}-city`}>{addressFields.city.label}</label>
+      <input
+        id={`${idPrefix}-city`}
+        name="city"
+        type="text"
+        autocomplete={addressFields.city.autocomplete}
+        maxlength={addressFields.city.max}
+        required
+        aria-describedby={`${idPrefix}-city-error`}
+        data-error={addressFields.city.missing}
+        class={inputClass}
+      />
+      <p id={`${idPrefix}-city-error`} class={errorClass}></p>
+    </div>
+
+    <div>
+      <label class={labelClass} for={`${idPrefix}-postcode`}>{addressFields.postcode.label}</label>
+      <input
+        id={`${idPrefix}-postcode`}
+        name="postcode"
+        type="text"
+        autocomplete={addressFields.postcode.autocomplete}
+        autocapitalize="characters"
+        spellcheck="false"
+        maxlength={addressFields.postcode.max}
+        required
+        aria-describedby={`${idPrefix}-postcode-error`}
+        data-error={addressFields.postcode.missing}
+        data-error-format={addressFields.postcode.invalid}
+        data-format-pattern={ukPostcodePattern}
+        data-format-case="upper"
+        class={inputClass}
+      />
+      <p id={`${idPrefix}-postcode-error`} class={errorClass}></p>
+    </div>
+  </div>
+</fieldset>

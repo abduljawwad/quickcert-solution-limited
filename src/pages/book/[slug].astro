@@ -1,5 +1,6 @@
 ---
 import { paymentSentences, visitOutcome } from "../../components/home/content";
+import PropertyAddressFields from "../../components/PropertyAddressFields.astro";
 import { business } from "../../config/business";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { primaryActionClass } from "../../lib/actions";
@@ -136,21 +137,7 @@ const notSavedMessage = leadNotSavedMessage();
           <p id="book-phone-error" class={errorClass}></p>
         </div>
 
-        <div>
-          <label class={labelClass} for="book-address">{quoteFields.address.label}</label>
-          <input
-            id="book-address"
-            name="address"
-            type="text"
-            autocomplete={quoteFields.address.autocomplete}
-            maxlength={quoteFields.address.max}
-            required
-            aria-describedby="book-address-error"
-            data-error={quoteFields.address.missing}
-            class={inputClass}
-          />
-          <p id="book-address-error" class={errorClass}></p>
-        </div>
+        <PropertyAddressFields idPrefix="book" />
 
         <div>
           <label class={labelClass} for="book-access">{accessNoteField.label}</label>
@@ -202,14 +189,20 @@ const notSavedMessage = leadNotSavedMessage();
 
   <script>
     import {
+      beginPendingSubmit,
+      markPressed,
+      releasePressedControl,
+      restoreSubmit,
+      submitButton,
+    } from "../../scripts/click-feedback";
+    import {
       applyFieldErrors,
+      applyServerFieldErrors,
       fieldErrorElement,
-      fieldOf,
       formPayload,
       messageOf,
       readJson,
       redirectOf,
-      setFieldError,
       writeStatus,
     } from "../../scripts/form";
 
@@ -218,25 +211,28 @@ const notSavedMessage = leadNotSavedMessage();
       form.dataset.bound = "true";
       form.addEventListener("submit", (event) => {
         event.preventDefault();
+        const button = submitButton(form);
+        if (button) markPressed(button);
         void submitBooking(form);
       });
     }
 
     async function submitBooking(bookForm: HTMLFormElement): Promise<void> {
+      const button = submitButton(bookForm);
       writeStatus("book-status", "", true);
       const firstInvalid = applyFieldErrors(bookForm);
       if (firstInvalid) {
         const error = fieldErrorElement(firstInvalid);
         writeStatus("book-status", error?.textContent ?? "", false);
         firstInvalid.focus();
+        if (button) releasePressedControl(button);
         return;
       }
 
-      const button = bookForm.querySelector("button[type='submit']");
-      if (button instanceof HTMLButtonElement) button.disabled = true;
-      bookForm.setAttribute("aria-busy", "true");
+      if (button) beginPendingSubmit(button, "Opening the calendar…");
 
       let succeeded = false;
+      let redirecting = false;
       try {
         const response = await fetch("/api/lead", {
           method: "POST",
@@ -251,6 +247,7 @@ const notSavedMessage = leadNotSavedMessage();
           const redirect = redirectOf(body);
           if (redirect) {
             succeeded = true;
+            redirecting = true;
             window.location.href = redirect;
             return;
           }
@@ -263,22 +260,14 @@ const notSavedMessage = leadNotSavedMessage();
 
         const message = messageOf(body) ?? bookForm.dataset.failure ?? "";
         const status = writeStatus("book-status", message, false);
-        const fieldName = fieldOf(body);
-        const named = fieldName ? bookForm.elements.namedItem(fieldName) : null;
-        const control =
-          named instanceof HTMLInputElement || named instanceof HTMLTextAreaElement ? named : null;
-        if (control && message) {
-          setFieldError(control, message);
-          control.focus();
-        } else if (status && message) {
-          status.focus();
-        }
+        const control = applyServerFieldErrors(bookForm, body);
+        if (control) control.focus();
+        else if (status && message) status.focus();
       } catch {
         const status = writeStatus("book-status", bookForm.dataset.failure ?? "", false);
         status?.focus();
       } finally {
-        bookForm.removeAttribute("aria-busy");
-        if (!succeeded && button instanceof HTMLButtonElement) button.disabled = false;
+        if (button && !redirecting) restoreSubmit(button, succeeded);
       }
     }
   </script>

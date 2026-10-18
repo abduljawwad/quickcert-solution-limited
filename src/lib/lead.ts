@@ -1,4 +1,5 @@
 import { business, type Service } from "../config/business";
+import { addressPartKeys, validateAddressParts, type AddressPartKey } from "./address";
 import {
   quoteEmailPattern,
   quoteFields,
@@ -9,8 +10,8 @@ import {
 export type BookableService = Extract<Service, { kind: "book" }>;
 
 export const accessNoteField = {
-  label: "Access note",
-  hint: "Optional. For example, who has the keys.",
+  label: "Who has the keys, or how should we get in?",
+  hint: "Optional.",
   max: 500,
 } as const;
 
@@ -18,7 +19,7 @@ export const leadRawKeys = [
   "name",
   "email",
   "phone",
-  "address",
+  ...addressPartKeys,
   "access_note",
   "service",
   "company_website",
@@ -30,7 +31,10 @@ export interface LeadRaw {
   name: string;
   email: string;
   phone: string;
-  address: string;
+  number: string;
+  street: string;
+  city: string;
+  postcode: string;
   access_note: string;
   service: string;
   company_website: string;
@@ -40,6 +44,7 @@ export interface ValidLead {
   name: string;
   email: string;
   phone: string;
+  /** Full line from propertyAddressLine: number street, city, postcode. */
   address: string;
   accessNote: string;
   serviceSlug: string;
@@ -48,12 +53,19 @@ export interface ValidLead {
   calendlyUrl: string;
 }
 
-export type LeadField = "name" | "email" | "phone" | "address" | "access_note" | "service";
+export type LeadField =
+  | "name"
+  | "email"
+  | "phone"
+  | AddressPartKey
+  | "access_note"
+  | "service";
 
 export interface LeadFieldError {
   ok: false;
   field: LeadField;
   message: string;
+  errors: { field: LeadField; message: string }[];
 }
 
 const emailPattern = new RegExp(quoteEmailPattern);
@@ -83,7 +95,10 @@ export function leadRawFromStrings(read: (key: LeadRawKey) => string): LeadRaw {
     name: read("name"),
     email: read("email"),
     phone: read("phone"),
-    address: read("address"),
+    number: read("number"),
+    street: read("street"),
+    city: read("city"),
+    postcode: read("postcode"),
     access_note: read("access_note"),
     service: read("service"),
     company_website: read("company_website"),
@@ -132,72 +147,72 @@ export function calendlyRedirect(
 }
 
 export function validateLead(raw: LeadRaw): { ok: true; value: ValidLead } | LeadFieldError {
+  const errors: { field: LeadField; message: string }[] = [];
+
   const name = raw.name.trim().replace(/\s+/g, " ");
-  if (!name) return { ok: false, field: "name", message: quoteFields.name.missing };
-  if (name.length > quoteFields.name.max) {
-    return { ok: false, field: "name", message: tooLong("Name", quoteFields.name.max) };
-  }
-  if (hasDisallowedControls(name, false)) {
-    return { ok: false, field: "name", message: quoteFields.name.missing };
+  if (!name) errors.push({ field: "name", message: quoteFields.name.missing });
+  else if (name.length > quoteFields.name.max) {
+    errors.push({ field: "name", message: tooLong("Name", quoteFields.name.max) });
+  } else if (hasDisallowedControls(name, false)) {
+    errors.push({ field: "name", message: quoteFields.name.missing });
   }
 
   const email = raw.email.trim();
-  if (!email) return { ok: false, field: "email", message: quoteFields.email.missing };
-  if (email.length > quoteFields.email.max) {
-    return { ok: false, field: "email", message: tooLong("Email", quoteFields.email.max) };
-  }
-  if (!emailPattern.test(email) || hasDisallowedControls(email, false)) {
-    return { ok: false, field: "email", message: quoteFields.email.invalid };
+  if (!email) errors.push({ field: "email", message: quoteFields.email.missing });
+  else if (email.length > quoteFields.email.max) {
+    errors.push({ field: "email", message: tooLong("Email", quoteFields.email.max) });
+  } else if (!emailPattern.test(email) || hasDisallowedControls(email, false)) {
+    errors.push({ field: "email", message: quoteFields.email.invalid });
   }
 
   const phone = raw.phone.trim();
-  if (!phone) return { ok: false, field: "phone", message: quoteFields.phone.missing };
-  if (phone.length > quoteFields.phone.max) {
-    return { ok: false, field: "phone", message: tooLong("Phone", quoteFields.phone.max) };
-  }
   const digits = phone.replace(/\D/g, "");
-  if (
+  if (!phone) errors.push({ field: "phone", message: quoteFields.phone.missing });
+  else if (phone.length > quoteFields.phone.max) {
+    errors.push({ field: "phone", message: tooLong("Phone", quoteFields.phone.max) });
+  } else if (
     !phonePattern.test(phone) ||
     digits.length < quotePhoneDigits.min ||
     digits.length > quotePhoneDigits.max ||
     hasDisallowedControls(phone, false)
   ) {
-    return { ok: false, field: "phone", message: quoteFields.phone.invalid };
+    errors.push({ field: "phone", message: quoteFields.phone.invalid });
   }
 
-  const address = raw.address.trim();
-  if (!address) return { ok: false, field: "address", message: quoteFields.address.missing };
-  if (address.length > quoteFields.address.max) {
-    return {
-      ok: false,
-      field: "address",
-      message: tooLong("Property address", quoteFields.address.max),
-    };
-  }
-  if (hasDisallowedControls(address, true)) {
-    return { ok: false, field: "address", message: quoteFields.address.missing };
-  }
+  const address = validateAddressParts({
+    number: raw.number,
+    street: raw.street,
+    city: raw.city,
+    postcode: raw.postcode,
+  });
+  if (!address.ok) errors.push(...address.errors);
 
   const accessNote = raw.access_note.trim();
   if (accessNote.length > accessNoteField.max) {
-    return {
-      ok: false,
+    errors.push({
       field: "access_note",
-      message: tooLong("Access note", accessNoteField.max),
-    };
-  }
-  if (accessNote && hasDisallowedControls(accessNote, true)) {
-    return {
-      ok: false,
+      message: tooLong(accessNoteField.label, accessNoteField.max),
+    });
+  } else if (accessNote && hasDisallowedControls(accessNote, true)) {
+    errors.push({
       field: "access_note",
-      message: "Remove unusual characters from the access note.",
-    };
+      message: "Remove unusual characters from who has the keys, or how we should get in.",
+    });
   }
 
   const serviceSlug = raw.service.trim();
-  if (!serviceSlug) return { ok: false, field: "service", message: "Service is required." };
   const service = bookableServices().find((item) => item.slug === serviceSlug);
-  if (!service) return { ok: false, field: "service", message: "Service is not recognised." };
+  if (!serviceSlug) errors.push({ field: "service", message: "Service is required." });
+  else if (!service) errors.push({ field: "service", message: "Service is not recognised." });
+
+  if (errors.length > 0) {
+    const first = errors[0] ?? { field: "name" as const, message: quoteFields.name.missing };
+    return { ok: false, field: first.field, message: first.message, errors };
+  }
+  if (!address.ok || !service) {
+    const fallback = { field: "name" as const, message: quoteFields.name.missing };
+    return { ok: false, field: fallback.field, message: fallback.message, errors: [fallback] };
+  }
 
   return {
     ok: true,
@@ -205,7 +220,7 @@ export function validateLead(raw: LeadRaw): { ok: true; value: ValidLead } | Lea
       name,
       email: email.toLowerCase(),
       phone,
-      address,
+      address: address.line,
       accessNote,
       serviceSlug: service.slug,
       serviceName: service.name,

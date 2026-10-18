@@ -4,7 +4,8 @@ export function controlError(field: FieldControl): string {
   const value = field.value.trim();
   if (!value) return field.dataset.error ?? "";
   if (field instanceof HTMLInputElement && field.dataset.formatPattern) {
-    if (!new RegExp(field.dataset.formatPattern).test(value)) {
+    const candidate = field.dataset.formatCase === "upper" ? value.toUpperCase() : value;
+    if (!new RegExp(field.dataset.formatPattern).test(candidate)) {
       return field.dataset.errorFormat ?? "";
     }
   }
@@ -88,4 +89,39 @@ export async function readJson(response: Response): Promise<unknown> {
   } catch {
     return null;
   }
+}
+
+export interface ServerFieldError {
+  field: string;
+  message: string;
+}
+
+export function serverFieldErrors(body: unknown): ServerFieldError[] {
+  if (body && typeof body === "object" && "errors" in body && Array.isArray(body.errors)) {
+    const errors: ServerFieldError[] = [];
+    for (const item of body.errors) {
+      if (!item || typeof item !== "object") continue;
+      const field = "field" in item && typeof item.field === "string" ? item.field : "";
+      const message = "message" in item && typeof item.message === "string" ? item.message : "";
+      if (field && message) errors.push({ field, message });
+    }
+    if (errors.length > 0) return errors;
+  }
+  const field = fieldOf(body);
+  const message = messageOf(body);
+  if (field && message) return [{ field, message }];
+  return [];
+}
+
+export function applyServerFieldErrors(form: HTMLFormElement, body: unknown): FieldControl | null {
+  let first: FieldControl | null = null;
+  for (const error of serverFieldErrors(body)) {
+    const named = form.elements.namedItem(error.field);
+    const control =
+      named instanceof HTMLInputElement || named instanceof HTMLTextAreaElement ? named : null;
+    if (!control || control.type === "hidden") continue;
+    setFieldError(control, error.message);
+    if (!first) first = control;
+  }
+  return first;
 }

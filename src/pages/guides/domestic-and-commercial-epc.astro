@@ -1,0 +1,151 @@
+---
+import { guideByHref } from "../../components/guides/catalogue";
+import { business } from "../../config/business";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { primaryActionClass, secondaryActionClass } from "../../lib/actions";
+import { textLinkClass } from "../../lib/fields";
+
+const guide = guideByHref("/guides/domestic-and-commercial-epc");
+const path = guide.href;
+const title = guide.title;
+const description = guide.description;
+
+function serviceBySlug(slug: string) {
+  const service = business.services.find((item) => item.slug === slug);
+  if (!service) {
+    throw new Error(`Missing service: ${slug}`);
+  }
+  return service;
+}
+
+const domestic = serviceBySlug("epc-domestic");
+const commercial = serviceBySlug("epc-commercial");
+
+const origin = Astro.site ?? new URL(Astro.url.origin);
+const pageUrl = new URL(path, origin).href;
+const siteUrl = new URL("/", origin).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description,
+  url: pageUrl,
+  author: {
+    "@type": "Organization",
+    name: business.legalName,
+    url: siteUrl,
+  },
+};
+---
+
+<BaseLayout title={title} description={description} canonicalPath={path} jsonLd={jsonLd}>
+  <section aria-labelledby="guide-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 text-sm">
+          <li>
+            <a href="/" class={textLinkClass}>Home</a>
+          </li>
+          <li class="flex items-center gap-x-2">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <a href="/guides" class={textLinkClass}>Guides</a>
+          </li>
+          <li class="flex min-w-0 items-center gap-x-2" aria-current="page">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">{guide.label}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1
+        id="guide-heading"
+        class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        A domestic EPC and a commercial EPC are different certificates. One is for a home. The
+        other is for a commercial building. Each visit has its own price. This is general guidance,
+        not legal advice.
+      </p>
+
+      <section aria-labelledby="domestic-heading" class="mt-12 max-w-3xl">
+        <h2 id="domestic-heading" class="text-3xl leading-tight text-balance text-primary">
+          Domestic EPC
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          A domestic EPC is an energy performance certificate for a home, such as a house or flat.
+          The assessor visits and emails the certificate. The detail on selling a home, and the
+          minimum EPC band for a landlord, is in the guide linked below.
+        </p>
+        <p class="mt-4">
+          <a href="/guides/do-i-need-an-epc" class={textLinkClass}>When a home needs an EPC</a>
+          <span class="text-on-surface-variant"> · </span>
+          <a
+            href={`/services/${domestic.slug}`}
+            class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+          >
+            {domestic.name} in {business.baseTown}
+          </a>
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="commercial-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="commercial-heading" class="text-3xl leading-tight text-balance text-primary">
+          Commercial EPC
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          A commercial EPC is an energy performance certificate for a shop, office, or other
+          commercial building. It is a different certificate from the one for a home. The assessor
+          visits the building and emails the commercial EPC.
+        </p>
+        <p class="mt-4">
+          <a
+            href={`/services/${commercial.slug}`}
+            class:list={[textLinkClass, "max-w-full whitespace-normal"]}
+          >
+            {commercial.name} in {business.baseTown}
+          </a>
+        </p>
+      </section>
+
+      <section
+        aria-labelledby="which-heading"
+        class="mt-12 max-w-3xl border-t border-outline/40 pt-8"
+      >
+        <h2 id="which-heading" class="text-3xl leading-tight text-balance text-primary">
+          Which visit to book
+        </h2>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          Book a domestic EPC when the property is a home. Book a commercial EPC when it is a shop,
+          office, or other commercial building. If the property is both a home and a commercial
+          unit, contact {business.shortName} before you book so the right visit is arranged.
+        </p>
+        <p class="mt-4 leading-7 text-pretty text-on-surface">
+          {business.shortName} is based in {business.baseTown}. Visits also cover {business.serviceAreaPhrase}.
+        </p>
+        <p class="mt-4">
+          <a href="/areas" class={textLinkClass}>Areas we cover</a>
+          <span class="text-on-surface-variant"> · </span>
+          <a href="/guides" class={textLinkClass}>All guides</a>
+        </p>
+      </section>
+
+      <div class="mt-8 flex max-w-3xl flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <a href={`/services/${domestic.slug}`} class:list={[primaryActionClass, "w-full sm:w-auto"]}>
+          View the domestic EPC
+        </a>
+        <a
+          href={`/services/${commercial.slug}`}
+          class:list={[secondaryActionClass, "w-full sm:w-auto"]}
+        >
+          View the commercial EPC
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

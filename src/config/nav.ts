@@ -1,3 +1,4 @@
+import { guidePages } from "../components/guides/catalogue";
 import { business } from "./business";
 
 export interface SiteLink {
@@ -8,7 +9,7 @@ export interface SiteLink {
 /** Header and footer share these arrays. Do not copy the lists into components. */
 export const primaryNav = [
   { href: "/services", label: "Services" },
-  { href: "/guides/do-i-need-an-epc", label: "Guides" },
+  { href: "/guides", label: "Guides" },
   { href: "/areas", label: "Areas we cover" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -28,4 +29,9 @@ export const legalNav = [
 export const serviceLinks: SiteLink[] = business.services.map((service) => ({
   href: `/services/${service.slug}`,
   label: service.name,
+}));
+
+export const guideLinks: SiteLink[] = guidePages.map((guide) => ({
+  href: guide.href,
+  label: guide.label,
 }));

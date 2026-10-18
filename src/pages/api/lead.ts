@@ -26,7 +26,15 @@ function slugForLog(serviceSlug: string): string {
 
 function json(
   status: number,
-  body: { ok: true; redirect: string } | { ok: true; message: string } | { ok: false; message: string; field?: string },
+  body:
+    | { ok: true; redirect: string }
+    | { ok: true; message: string }
+    | {
+        ok: false;
+        message: string;
+        field?: string;
+        errors?: { field: string; message: string }[];
+      },
 ): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -151,7 +159,12 @@ export const POST: APIRoute = async ({ request }) => {
     const parsed = validateLead(raw);
     if (!parsed.ok) {
       return {
-        response: json(400, { ok: false, message: parsed.message, field: parsed.field }),
+        response: json(400, {
+          ok: false,
+          message: parsed.message,
+          field: parsed.field,
+          errors: parsed.errors,
+        }),
         outcome: `invalid service=${slugForLog(raw.service)}`,
       };
     }

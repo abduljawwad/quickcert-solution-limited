@@ -50,7 +50,11 @@ const jsonLd = {
           <li>
             <a href="/" class={textLinkClass}>Home</a>
           </li>
-          <li class="flex items-center gap-x-2" aria-current="page">
+          <li class="flex items-center gap-x-2">
+            <span aria-hidden="true" class="text-on-surface-variant">/</span>
+            <a href="/guides" class={textLinkClass}>Guides</a>
+          </li>
+          <li class="flex min-w-0 items-center gap-x-2" aria-current="page">
             <span aria-hidden="true" class="text-on-surface-variant">/</span>
             <span class="inline-flex min-h-11 items-center text-on-surface">
               Landlord compliance checklist
@@ -93,6 +97,10 @@ const jsonLd = {
               <a href="/guides/do-i-need-an-epc" class={textLinkClass}>
                 When a home needs an EPC
               </a>
+              <span class="text-on-surface-variant"> · </span>
+              <a href="/guides/domestic-and-commercial-epc" class={textLinkClass}>
+                Domestic EPC or commercial EPC
+              </a>
             </p>
           </li>
           <li>
@@ -105,6 +113,10 @@ const jsonLd = {
               >
                 {legionella.name} in {business.baseTown}
               </a>
+              <span class="text-on-surface-variant"> · </span>
+              <a href="/guides/legionella-assessment-rented-home" class={textLinkClass}>
+                Legionella assessment for a rented home
+              </a>
             </p>
           </li>
           <li>
@@ -116,6 +128,10 @@ const jsonLd = {
                 class:list={[textLinkClass, "max-w-full whitespace-normal"]}
               >
                 {fire.name} in {business.baseTown}
+              </a>
+              <span class="text-on-surface-variant"> · </span>
+              <a href="/guides/what-a-fire-risk-assessment-covers" class={textLinkClass}>
+                What a fire risk assessment covers
               </a>
             </p>
           </li>
@@ -141,6 +157,10 @@ const jsonLd = {
               >
                 {pat.name} in {business.baseTown}
               </a>
+              <span class="text-on-surface-variant"> · </span>
+              <a href="/guides/pat-testing-for-landlords" class={textLinkClass}>
+                PAT testing for a landlord
+              </a>
             </p>
           </li>
           <li>
@@ -155,6 +175,10 @@ const jsonLd = {
                 class:list={[textLinkClass, "max-w-full whitespace-normal"]}
               >
                 {electrical.name} in {business.baseTown}
+              </a>
+              <span class="text-on-surface-variant"> · </span>
+              <a href="/guides/pat-testing-for-landlords" class={textLinkClass}>
+                PAT testing for a landlord
               </a>
             </p>
           </li>
@@ -186,6 +210,8 @@ const jsonLd = {
         </p>
         <p class="mt-4">
           <a href="/services" class={textLinkClass}>All services</a>
+          <span class="text-on-surface-variant"> · </span>
+          <a href="/guides" class={textLinkClass}>All guides</a>
           <span class="text-on-surface-variant"> · </span>
           <a href="/areas" class={textLinkClass}>Areas we cover</a>
         </p>
