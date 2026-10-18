@@ -1,21 +1,20 @@
+import { customerTextError } from "../lib/customer-text";
+import { accessNoteError } from "../lib/fields";
+
 export type FieldControl = HTMLInputElement | HTMLTextAreaElement;
 
+function fieldLabel(field: FieldControl): string {
+  return field.labels?.[0]?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+}
+
+/** Required-field copy stays on data-error. Character rules come from customerTextError. */
 export function controlError(field: FieldControl): string {
+  if (field.name === "access_note") return accessNoteError(field.value);
   const value = field.value.trim();
   if (!value) return field.dataset.error ?? "";
-  if (field instanceof HTMLInputElement && field.dataset.formatPattern) {
-    const candidate = field.dataset.formatCase === "upper" ? value.toUpperCase() : value;
-    if (!new RegExp(field.dataset.formatPattern).test(candidate)) {
-      return field.dataset.errorFormat ?? "";
-    }
-  }
-  if (field instanceof HTMLInputElement && field.dataset.digitsMin && field.dataset.digitsMax) {
-    const digits = value.replace(/\D/g, "").length;
-    const min = Number(field.dataset.digitsMin);
-    const max = Number(field.dataset.digitsMax);
-    if (digits < min || digits > max) return field.dataset.errorFormat ?? "";
-  }
-  return "";
+  return customerTextError(field.name, value, {
+    descriptionLabel: field.name === "description" ? fieldLabel(field) : undefined,
+  });
 }
 
 export function fieldErrorElement(field: FieldControl): HTMLElement | null {

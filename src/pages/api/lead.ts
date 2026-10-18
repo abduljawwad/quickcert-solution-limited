@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { formRateLimitMessage, withinFormRateLimit } from "../../lib/form-rate-limit";
 import { handleApiRoute } from "../../lib/log";
 import { DEAL_STAGE_BOOKING_STARTED } from "../../config/hubspot";
 import { DEAL_TO_CONTACT, contactId, hubspotPost, hubspotToken, splitName } from "../../lib/hubspot";
@@ -142,8 +143,16 @@ async function saveLead(
   return { ok: true };
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
+  const { request } = context;
   return handleApiRoute(request, async () => {
+    if (!withinFormRateLimit(context)) {
+      return {
+        response: json(429, { ok: false, message: formRateLimitMessage }),
+        outcome: "rate_limited",
+      };
+    }
+
     const raw = await readLead(request);
     if (!raw) {
       return { response: json(400, { ok: false, message: "The form could not be read." }), outcome: "invalid" };

@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { formRateLimitMessage, withinFormRateLimit } from "../../lib/form-rate-limit";
 import { handleApiRoute } from "../../lib/log";
 import { DEAL_STAGE_QUOTE_REQUESTED } from "../../config/hubspot";
 import { DEAL_TO_CONTACT, contactId, hubspotPost, hubspotToken, splitName } from "../../lib/hubspot";
@@ -105,17 +106,20 @@ async function saveQuote(
   const id = contactId(contact.data);
   if (!id) return { ok: false, status: contact.status };
 
+  const dealProperties: Record<string, string> = {
+    dealname: `${quote.serviceName} quote`,
+    dealstage: DEAL_STAGE_QUOTE_REQUESTED,
+    description: quote.description,
+    service_slug: quote.serviceSlug,
+    address: quote.address,
+  };
+  if (quote.accessNote) dealProperties.access_note = quote.accessNote;
+
   const deal = await hubspotPost(
     token,
     "/crm/v3/objects/deals",
     {
-      properties: {
-        dealname: `${quote.serviceName} quote`,
-        dealstage: DEAL_STAGE_QUOTE_REQUESTED,
-        description: quote.description,
-        service_slug: quote.serviceSlug,
-        address: quote.address,
-      },
+      properties: dealProperties,
       associations: [
         {
           to: { id: /^\d+$/.test(id) ? Number(id) : id },
@@ -134,8 +138,16 @@ async function saveQuote(
   return { ok: true };
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
+  const { request } = context;
   return handleApiRoute(request, async () => {
+    if (!withinFormRateLimit(context)) {
+      return {
+        response: json(429, { ok: false, message: formRateLimitMessage }),
+        outcome: "rate_limited",
+      };
+    }
+
     const raw = await readQuote(request);
     if (!raw) {
       return { response: json(400, { ok: false, message: "The form could not be read." }), outcome: "invalid" };

@@ -1,15 +1,17 @@
+import {
+  cityCharacterMessage,
+  customerTextError,
+  formatUkPostcode,
+  numberCharacterMessage,
+  postcodeInvalidMessage,
+  streetCharacterMessage,
+} from "./customer-text";
+
 export const addressPartKeys = ["number", "street", "city", "postcode"] as const;
 
 export type AddressPartKey = (typeof addressPartKeys)[number];
 
-/**
- * UK postcode, tested after the value is uppercased.
- * A normal space between the outward and inward codes is optional.
- */
-export const ukPostcodePattern =
-  "^(?:[A-Z][A-HJ-Y]?\\d[A-Z\\d]?\\s*\\d[A-Z]{2}|GIR\\s*0A{2})$";
-
-const ukPostcode = new RegExp(ukPostcodePattern);
+export { ukPostcodePattern } from "./customer-text";
 
 export const addressFields = {
   number: {
@@ -17,25 +19,28 @@ export const addressFields = {
     autocomplete: "on",
     max: 30,
     missing: "Enter the house number.",
+    invalid: numberCharacterMessage,
   },
   street: {
     label: "Street",
     autocomplete: "street-address",
     max: 100,
     missing: "Enter the street.",
+    invalid: streetCharacterMessage,
   },
   city: {
     label: "City",
     autocomplete: "address-level2",
     max: 80,
     missing: "Enter the city.",
+    invalid: cityCharacterMessage,
   },
   postcode: {
     label: "Postcode",
     autocomplete: "postal-code",
     max: 12,
     missing: "Enter the postcode.",
-    invalid: "Enter a valid UK postcode.",
+    invalid: postcodeInvalidMessage,
   },
 } as const;
 
@@ -56,16 +61,12 @@ function tooLong(label: string, max: number): string {
   return `${label} must be ${max} characters or fewer.`;
 }
 
-function hasDisallowedControls(value: string): boolean {
-  return /[\u0000-\u001F\u007F]/.test(value);
-}
-
 function readTextPart(
   field: Exclude<AddressPartKey, "postcode">,
   value: string,
 ): { ok: true; value: string } | AddressFieldError {
   const trimmed = value.trim();
-  if (!trimmed || hasDisallowedControls(trimmed)) {
+  if (!trimmed) {
     return { ok: false, field, message: addressFields[field].missing };
   }
   const normalized = trimmed.replace(/ {2,}/g, " ");
@@ -76,15 +77,9 @@ function readTextPart(
       message: tooLong(addressFields[field].label, addressFields[field].max),
     };
   }
+  const character = customerTextError(field, normalized);
+  if (character) return { ok: false, field, message: character };
   return { ok: true, value: normalized };
-}
-
-function formatUkPostcode(value: string): string | undefined {
-  const upper = value.trim().toUpperCase();
-  if (!ukPostcode.test(upper)) return undefined;
-  const compact = upper.replace(/\s+/g, "");
-  if (compact.length < 5) return undefined;
-  return `${compact.slice(0, -3)} ${compact.slice(-3)}`;
 }
 
 /**
@@ -117,8 +112,9 @@ function readPostcode(value: string): { ok: true; value: string } | AddressField
       message: tooLong(addressFields.postcode.label, addressFields.postcode.max),
     };
   }
-  if (hasDisallowedControls(postcodeTrimmed)) {
-    return { ok: false, field: "postcode", message: addressFields.postcode.invalid };
+  const character = customerTextError("postcode", postcodeTrimmed);
+  if (character) {
+    return { ok: false, field: "postcode", message: character };
   }
   const postcode = formatUkPostcode(postcodeTrimmed);
   if (!postcode) {

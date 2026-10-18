@@ -12,7 +12,7 @@ const listFormat = new Intl.ListFormat("en-GB", {
   type: "conjunction",
 });
 
-const description = `Domestic and commercial EPCs in ${business.baseTown}, with visits across ${business.serviceAreaPhrase}.`;
+const description = `Visits from ${business.baseTown} across ${business.serviceAreaPhrase} for domestic and commercial EPCs and the other services on this site.`;
 
 const bookableCount = business.services.filter((service) => service.kind === "book").length;
 const quoteNames = listFormat.format(
@@ -137,10 +137,10 @@ const jsonLd = {
         <p class="mt-4 max-w-3xl leading-7 text-pretty text-on-surface">
           Each place below is visited from {business.baseTown}.
         </p>
-        <ul class="mt-6 grid grid-cols-1 border-t border-outline/40 sm:grid-cols-2 lg:grid-cols-3">
+        <ul class="place-list place-list-sm mt-6">
           {
             places.map((place) => (
-              <li class="border-b border-outline/40">
+              <li>
                 <a href={`#${place.id}`} class:list={[textLinkClass, "flex min-h-11 w-full items-center"]}>
                   {place.name}
                 </a>

@@ -6,7 +6,7 @@ import { textLinkClass } from "../lib/fields";
 import { areaServedPlaces } from "../lib/place";
 
 const title = `Contact ${business.shortName} in ${business.baseTown}`;
-const description = `Call or email ${business.legalName}, a property-certificate surveyor in ${business.baseTown}, about EPCs, risk assessments, inventories, and PAT testing.`;
+const description = `Call or email ${business.legalName}, a property-certificate surveyor in ${business.baseTown}, about EPCs, risk assessments, inventories, PAT testing, and quotes for electrical or plumbing work.`;
 
 const bookable = business.services.filter(
   (service): service is Extract<Service, { kind: "book" }> => service.kind === "book",
@@ -60,7 +60,7 @@ const jsonLd = {
         {title}
       </h1>
       <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
-        {business.shortName} is a property-certificate surveyor based in {business.baseTown}. Visits also cover {business.serviceAreaPhrase}.
+        {business.shortName} is a property-certificate surveyor based in {business.baseTown}. Visits also cover {business.serviceAreaPhrase}. Electrical work and plumbing are quoted before any payment.
       </p>
 
       <div class="mt-10 grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-16">
@@ -148,7 +148,7 @@ const jsonLd = {
               {
                 quotes.map((service) => (
                   <li>
-                    <a href={`/services/${service.slug}`} class={textLinkClass}>
+                    <a href={`/services/${service.slug}#quote-form`} class={textLinkClass}>
                       Request a quote for {service.name}
                     </a>
                   </li>

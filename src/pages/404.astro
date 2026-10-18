@@ -1,0 +1,28 @@
+---
+import { business } from "../config/business";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { primaryActionClass, secondaryActionClass } from "../lib/actions";
+
+const title = "Page not found";
+const description = `That page is not on the ${business.shortName} website.`;
+---
+
+<BaseLayout title={title} description={description} noindex>
+  <section aria-labelledby="missing-heading">
+    <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+      <h1
+        id="missing-heading"
+        class="max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
+      >
+        Page not found
+      </h1>
+      <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
+        That page is not on this website.
+      </p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <a href="/" class:list={[primaryActionClass, "w-full sm:w-auto"]}>Back to the homepage</a>
+        <a href="/services" class:list={[secondaryActionClass, "w-full sm:w-auto"]}>View services</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

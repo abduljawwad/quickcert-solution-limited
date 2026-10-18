@@ -180,7 +180,7 @@ const notSavedMessage = leadNotSavedMessage();
           aria-live="polite"
           tabindex="-1"
           data-state="idle"
-          class="text-sm text-on-surface data-[state=error]:text-error"
+          class="min-h-5 text-sm text-on-surface data-[state=error]:text-error"
         >
         </p>
       </form>
@@ -191,7 +191,6 @@ const notSavedMessage = leadNotSavedMessage();
     import {
       beginPendingSubmit,
       markPressed,
-      releasePressedControl,
       restoreSubmit,
       submitButton,
     } from "../../scripts/click-feedback";
@@ -225,7 +224,7 @@ const notSavedMessage = leadNotSavedMessage();
         const error = fieldErrorElement(firstInvalid);
         writeStatus("book-status", error?.textContent ?? "", false);
         firstInvalid.focus();
-        if (button) releasePressedControl(button);
+        if (button) restoreSubmit(button, false);
         return;
       }
 

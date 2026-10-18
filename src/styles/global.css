@@ -178,3 +178,73 @@ button[aria-busy="true"] {
     background-color: Highlight;
   }
 }
+
+/*
+ * Place-name grids. Rules sit between rows only:
+ * the first row has no top rule, and the last row has no bottom rule.
+ * place-list-sm is two columns from 40rem; place-list-md from 48rem.
+ * Both are three columns from 64rem.
+ */
+.place-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.place-list > li {
+  border-bottom: 1px solid color-mix(in oklab, var(--color-outline) 40%, transparent);
+}
+
+.place-list > li:last-child {
+  border-bottom: 0;
+}
+
+@media (min-width: 40rem) {
+  .place-list-sm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .place-list-sm > li:last-child {
+    border-bottom: 1px solid color-mix(in oklab, var(--color-outline) 40%, transparent);
+  }
+
+  .place-list-sm > li:nth-child(2n + 1):nth-last-child(-n + 2),
+  .place-list-sm > li:nth-child(2n + 1):nth-last-child(-n + 2) ~ li {
+    border-bottom: 0;
+  }
+}
+
+@media (min-width: 48rem) {
+  .place-list-md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .place-list-md > li:last-child {
+    border-bottom: 1px solid color-mix(in oklab, var(--color-outline) 40%, transparent);
+  }
+
+  .place-list-md > li:nth-child(2n + 1):nth-last-child(-n + 2),
+  .place-list-md > li:nth-child(2n + 1):nth-last-child(-n + 2) ~ li {
+    border-bottom: 0;
+  }
+}
+
+@media (min-width: 64rem) {
+  .place-list-sm,
+  .place-list-md {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .place-list-sm > li:nth-child(2n + 1):nth-last-child(-n + 2),
+  .place-list-sm > li:nth-child(2n + 1):nth-last-child(-n + 2) ~ li,
+  .place-list-md > li:nth-child(2n + 1):nth-last-child(-n + 2),
+  .place-list-md > li:nth-child(2n + 1):nth-last-child(-n + 2) ~ li {
+    border-bottom: 1px solid color-mix(in oklab, var(--color-outline) 40%, transparent);
+  }
+
+  .place-list-sm > li:nth-child(3n + 1):nth-last-child(-n + 3),
+  .place-list-sm > li:nth-child(3n + 1):nth-last-child(-n + 3) ~ li,
+  .place-list-md > li:nth-child(3n + 1):nth-last-child(-n + 3),
+  .place-list-md > li:nth-child(3n + 1):nth-last-child(-n + 3) ~ li {
+    border-bottom: 0;
+  }
+}

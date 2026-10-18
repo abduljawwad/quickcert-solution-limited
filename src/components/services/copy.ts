@@ -56,7 +56,7 @@ export const serviceCopy = {
       "Landlords use a domestic EPC when they let a home, and they need to meet a minimum EPC band. Sellers need a domestic EPC before a home is marketed for sale. Letting agents can book the visit for a home they manage.",
     ],
     receive: [
-      "You receive the domestic EPC by email after the visit. The price on this page is the price charged. You book and pay from this page.",
+      "You receive the domestic EPC by email after the visit. The price on this page is the price charged. Payment is on a secure Stripe page.",
     ],
     guides: [guide("/guides/do-i-need-an-epc"), guide("/guides/domestic-and-commercial-epc")],
     also: [servicePage("epc-commercial")],
@@ -71,7 +71,7 @@ export const serviceCopy = {
       `Landlords, agents, and owners of small commercial units book this visit for premises in ${business.baseTown} and the other places we cover.`,
     ],
     receive: [
-      "You receive the commercial EPC by email after the visit. The price on this page is the price charged. You book and pay from this page.",
+      "You receive the commercial EPC by email after the visit. The price on this page is the price charged. Payment is on a secure Stripe page.",
     ],
     guides: [guide("/guides/domestic-and-commercial-epc")],
     also: [servicePage("epc-domestic")],
@@ -85,7 +85,7 @@ export const serviceCopy = {
       "Landlords and letting agents book this visit for a rented house or flat.",
     ],
     receive: [
-      "You receive the written Legionella risk assessment by email after the visit. The price on this page is the price charged. You book and pay from this page.",
+      "You receive the written Legionella risk assessment by email after the visit. The price on this page is the price charged. Payment is on a secure Stripe page.",
     ],
     guides: [guide("/guides/legionella-assessment-rented-home")],
   },
@@ -98,7 +98,7 @@ export const serviceCopy = {
       "Landlords and letting agents book this visit for a rented property. Owners of small commercial units can book the same visit.",
     ],
     receive: [
-      "You receive the written fire risk assessment by email after the visit. The price on this page is the price charged. You book and pay from this page. Supplying or fitting alarms and doors is separate from this visit.",
+      "You receive the written fire risk assessment by email after the visit. The price on this page is the price charged. Payment is on a secure Stripe page. Supplying or fitting alarms and doors is separate from this visit.",
     ],
     guides: [guide("/guides/what-a-fire-risk-assessment-covers")],
   },
@@ -111,7 +111,7 @@ export const serviceCopy = {
       "Landlords and letting agents use an inventory at the start or end of a tenancy.",
     ],
     receive: [
-      "You receive the inventory by email after the visit. The price on this page is the price charged. Book the visit for the check-in or the check-out.",
+      "You receive the inventory by email after the visit. The price on this page is the price charged. Book the visit for the check-in or the check-out. Payment is on a secure Stripe page.",
     ],
     guides: [guide("/guides/landlord-compliance-checklist")],
   },
@@ -125,7 +125,7 @@ export const serviceCopy = {
       "Landlords book PAT testing for appliances they supply in a rented home. Small businesses book it for portable appliances at their premises.",
     ],
     receive: [
-      "The assessor tests the portable appliances and emails the results. The price on this page is the price charged. You book and pay from this page.",
+      "The assessor tests the portable appliances and emails the results. The price on this page is the price charged. Payment is on a secure Stripe page.",
     ],
     guides: [guide("/guides/pat-testing-for-landlords")],
     also: [servicePage("electrical")],

@@ -1,19 +1,12 @@
 import { business, type Service } from "../config/business";
 import { addressPartKeys, validateAddressParts, type AddressPartKey } from "./address";
-import {
-  quoteEmailPattern,
-  quoteFields,
-  quotePhoneDigits,
-  quotePhonePattern,
-} from "./quote";
+import { customerTextError } from "./customer-text";
+import { accessNoteError } from "./fields";
+import { quoteFields } from "./quote";
 
 export type BookableService = Extract<Service, { kind: "book" }>;
 
-export const accessNoteField = {
-  label: "Who has the keys, or how should we get in?",
-  hint: "Optional.",
-  max: 500,
-} as const;
+export { accessNoteField } from "./fields";
 
 export const leadRawKeys = [
   "name",
@@ -68,9 +61,6 @@ export interface LeadFieldError {
   errors: { field: LeadField; message: string }[];
 }
 
-const emailPattern = new RegExp(quoteEmailPattern);
-const phonePattern = new RegExp(quotePhonePattern);
-
 function tooLong(label: string, max: number): string {
   return `${label} must be ${max} characters or fewer.`;
 }
@@ -81,13 +71,6 @@ function bookableServices(): BookableService[] {
 
 export function isBookSlug(slug: string): boolean {
   return bookableServices().some((service) => service.slug === slug);
-}
-
-function hasDisallowedControls(value: string, allowNewlines: boolean): boolean {
-  const pattern = allowNewlines
-    ? /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/
-    : /[\u0000-\u001F\u007F]/;
-  return pattern.test(value);
 }
 
 export function leadRawFromStrings(read: (key: LeadRawKey) => string): LeadRaw {
@@ -153,30 +136,27 @@ export function validateLead(raw: LeadRaw): { ok: true; value: ValidLead } | Lea
   if (!name) errors.push({ field: "name", message: quoteFields.name.missing });
   else if (name.length > quoteFields.name.max) {
     errors.push({ field: "name", message: tooLong("Name", quoteFields.name.max) });
-  } else if (hasDisallowedControls(name, false)) {
-    errors.push({ field: "name", message: quoteFields.name.missing });
+  } else {
+    const character = customerTextError("name", name);
+    if (character) errors.push({ field: "name", message: character });
   }
 
   const email = raw.email.trim();
   if (!email) errors.push({ field: "email", message: quoteFields.email.missing });
   else if (email.length > quoteFields.email.max) {
     errors.push({ field: "email", message: tooLong("Email", quoteFields.email.max) });
-  } else if (!emailPattern.test(email) || hasDisallowedControls(email, false)) {
-    errors.push({ field: "email", message: quoteFields.email.invalid });
+  } else {
+    const character = customerTextError("email", email);
+    if (character) errors.push({ field: "email", message: character });
   }
 
   const phone = raw.phone.trim();
-  const digits = phone.replace(/\D/g, "");
   if (!phone) errors.push({ field: "phone", message: quoteFields.phone.missing });
   else if (phone.length > quoteFields.phone.max) {
     errors.push({ field: "phone", message: tooLong("Phone", quoteFields.phone.max) });
-  } else if (
-    !phonePattern.test(phone) ||
-    digits.length < quotePhoneDigits.min ||
-    digits.length > quotePhoneDigits.max ||
-    hasDisallowedControls(phone, false)
-  ) {
-    errors.push({ field: "phone", message: quoteFields.phone.invalid });
+  } else {
+    const character = customerTextError("phone", phone);
+    if (character) errors.push({ field: "phone", message: character });
   }
 
   const address = validateAddressParts({
@@ -188,17 +168,8 @@ export function validateLead(raw: LeadRaw): { ok: true; value: ValidLead } | Lea
   if (!address.ok) errors.push(...address.errors);
 
   const accessNote = raw.access_note.trim();
-  if (accessNote.length > accessNoteField.max) {
-    errors.push({
-      field: "access_note",
-      message: tooLong(accessNoteField.label, accessNoteField.max),
-    });
-  } else if (accessNote && hasDisallowedControls(accessNote, true)) {
-    errors.push({
-      field: "access_note",
-      message: "Remove unusual characters from who has the keys, or how we should get in.",
-    });
-  }
+  const accessMessage = accessNoteError(raw.access_note);
+  if (accessMessage) errors.push({ field: "access_note", message: accessMessage });
 
   const serviceSlug = raw.service.trim();
   const service = bookableServices().find((item) => item.slug === serviceSlug);

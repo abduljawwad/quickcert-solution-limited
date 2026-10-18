@@ -7,9 +7,13 @@ import { googleReviewHref } from "../lib/review";
 
 export const prerender = true;
 
-const title = "Leave a Google review";
-const description = `Leave a Google review for ${business.shortName}, or call or email the team.`;
 const reviewUrl = googleReviewHref(business.googleReviewUrl);
+const title = reviewUrl ? "Leave a Google review" : "Get in touch";
+const description = reviewUrl
+  ? `Leave a Google review for ${business.shortName}, or call or email the team.`
+  : `Call or email ${business.shortName}.`;
+const heading = reviewUrl ? "Leave a Google review or get in touch" : "Get in touch";
+const crumb = reviewUrl ? "Google review" : "Get in touch";
 ---
 
 <BaseLayout title={title} description={description} canonicalPath="/review" noindex>
@@ -22,7 +26,7 @@ const reviewUrl = googleReviewHref(business.googleReviewUrl);
           </li>
           <li class="flex items-center gap-x-2" aria-current="page">
             <span aria-hidden="true" class="text-on-surface-variant">/</span>
-            <span class="inline-flex min-h-11 items-center text-on-surface">Google review</span>
+            <span class="inline-flex min-h-11 items-center text-on-surface">{crumb}</span>
           </li>
         </ol>
       </nav>
@@ -31,7 +35,7 @@ const reviewUrl = googleReviewHref(business.googleReviewUrl);
         id="review-heading"
         class="mt-8 max-w-3xl text-4xl leading-tight text-balance text-primary sm:text-5xl"
       >
-        Leave a Google review or get in touch
+        {heading}
       </h1>
       <p class="mt-6 max-w-3xl text-lg leading-7 text-pretty text-on-surface">
         {
@@ -40,13 +44,6 @@ const reviewUrl = googleReviewHref(business.googleReviewUrl);
             : `Call or email ${business.shortName}.`
         }
       </p>
-      {
-        reviewUrl === undefined && (
-          <p class="mt-4 max-w-3xl leading-7 text-pretty text-on-surface">
-            The Google review link is added before launch.
-          </p>
-        )
-      }
 
       {
         reviewUrl && (

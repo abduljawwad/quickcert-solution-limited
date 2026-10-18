@@ -6,7 +6,14 @@ import ServiceExplanation from "../../components/services/ServiceExplanation.ast
 import { business, openingHoursSpecification, type Service } from "../../config/business";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { primaryActionClass } from "../../lib/actions";
-import { errorClass, inputClass, labelClass, textLinkClass, textareaClass } from "../../lib/fields";
+import {
+  accessNoteField,
+  errorClass,
+  inputClass,
+  labelClass,
+  textLinkClass,
+  textareaClass,
+} from "../../lib/fields";
 import { areaServedPlaces } from "../../lib/place";
 import { formatPrice } from "../../lib/price";
 import {
@@ -165,7 +172,6 @@ const jsonLd = {
                   </p>
                 )
               }
-              <p class="text-sm text-on-surface-variant">All fields are required.</p>
               <input type="hidden" name="service" value={quoteService.slug} />
 
               <div>
@@ -227,6 +233,23 @@ const jsonLd = {
               <PropertyAddressFields idPrefix="quote" />
 
               <div>
+                <label class={labelClass} for="quote-access">{accessNoteField.label}</label>
+                <textarea
+                  id="quote-access"
+                  name="access_note"
+                  rows="4"
+                  maxlength={accessNoteField.max}
+                  aria-describedby="quote-access-hint quote-access-error"
+                  data-error=""
+                  class={textareaClass}
+                ></textarea>
+                <p id="quote-access-hint" class="mt-1 text-sm text-on-surface-variant">
+                  {accessNoteField.hint}
+                </p>
+                <p id="quote-access-error" class={errorClass}></p>
+              </div>
+
+              <div>
                 <label class={labelClass} for="quote-description">
                   {quoteDescriptionCopy(quoteService.slug).label}
                 </label>
@@ -263,7 +286,7 @@ const jsonLd = {
                 aria-live="polite"
                 tabindex="-1"
                 data-state="idle"
-                class="text-sm text-on-surface data-[state=error]:text-error"
+                class="min-h-5 text-sm text-on-surface data-[state=error]:text-error"
               >
               </p>
             </form>
@@ -298,7 +321,6 @@ const jsonLd = {
     import {
       beginPendingSubmit,
       markPressed,
-      releasePressedControl,
       restoreSubmit,
       submitButton,
     } from "../../scripts/click-feedback";
@@ -331,7 +353,7 @@ const jsonLd = {
         const error = fieldErrorElement(firstInvalid);
         writeStatus("quote-status", error?.textContent ?? "", false);
         firstInvalid.focus();
-        if (button) releasePressedControl(button);
+        if (button) restoreSubmit(button, false);
         return;
       }
 

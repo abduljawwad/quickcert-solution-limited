@@ -14,10 +14,10 @@ const areaLinkClass =
     <p class="mt-4 text-lg leading-7 text-on-surface">
       Based in {business.baseTown}. Visits also cover {business.serviceAreaPhrase}.
     </p>
-    <ul class="mt-8 grid grid-cols-1 border-t border-outline/40 md:grid-cols-2 lg:grid-cols-3">
+    <ul class="place-list place-list-md mt-8">
       {
         business.areas.map((area) => (
-          <li class="border-b border-outline/40">
+          <li>
             <a href={`/areas#${placeId(area)}`} class={areaLinkClass}>
               {area}
             </a>

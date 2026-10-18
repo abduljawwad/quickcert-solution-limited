@@ -1,5 +1,18 @@
 import { business, type Service } from "../config/business";
 import { addressPartKeys, validateAddressParts, type AddressPartKey } from "./address";
+import {
+  customerTextError,
+  emailInvalidMessage,
+  nameCharacterMessage,
+  phoneInvalidMessage,
+} from "./customer-text";
+import { accessNoteError } from "./fields";
+
+export {
+  quoteEmailPattern,
+  quotePhoneDigits,
+  quotePhonePattern,
+} from "./customer-text";
 
 export type QuoteService = Extract<Service, { kind: "quote" }>;
 
@@ -10,30 +23,27 @@ export function quoteNotSavedMessage(): string {
   return `Your enquiry was not saved. Call ${business.phoneDisplay}.`;
 }
 
-export const quoteEmailPattern = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$";
-export const quotePhonePattern = "^[+0-9\\s().-]+$";
-export const quotePhoneDigits = { min: 8, max: 15 } as const;
-
 export const quoteFields = {
   name: {
     label: "Name",
     autocomplete: "name",
     max: 100,
     missing: "Enter your name.",
+    invalid: nameCharacterMessage,
   },
   email: {
     label: "Email",
     autocomplete: "email",
     max: 254,
     missing: "Enter your email.",
-    invalid: "Enter a valid email address.",
+    invalid: emailInvalidMessage,
   },
   phone: {
     label: "Phone",
     autocomplete: "tel",
     max: 30,
     missing: "Enter your phone number.",
-    invalid: "Enter a valid phone number.",
+    invalid: phoneInvalidMessage,
   },
   description: {
     max: 2000,
@@ -59,6 +69,7 @@ export const quoteRawKeys = [
   "email",
   "phone",
   ...addressPartKeys,
+  "access_note",
   "description",
   "service",
   "company_website",
@@ -74,6 +85,7 @@ export interface QuoteRaw {
   street: string;
   city: string;
   postcode: string;
+  access_note: string;
   description: string;
   service: string;
   company_website: string;
@@ -85,6 +97,7 @@ export interface ValidQuote {
   phone: string;
   /** Full line from propertyAddressLine: number street, city, postcode. */
   address: string;
+  accessNote: string;
   description: string;
   serviceSlug: string;
   serviceName: string;
@@ -95,6 +108,7 @@ export type QuoteField =
   | "email"
   | "phone"
   | AddressPartKey
+  | "access_note"
   | "description"
   | "service";
 
@@ -104,9 +118,6 @@ export interface QuoteFieldError {
   message: string;
   errors: { field: QuoteField; message: string }[];
 }
-
-const emailPattern = new RegExp(quoteEmailPattern);
-const phonePattern = new RegExp(quotePhonePattern);
 
 function tooLong(label: string, max: number): string {
   return `${label} must be ${max} characters or fewer.`;
@@ -120,13 +131,6 @@ export function isQuoteSlug(slug: string): boolean {
   return quoteServiceList().some((service) => service.slug === slug);
 }
 
-function hasDisallowedControls(value: string, allowNewlines: boolean): boolean {
-  const pattern = allowNewlines
-    ? /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/
-    : /[\u0000-\u001F\u007F]/;
-  return pattern.test(value);
-}
-
 export function quoteRawFromStrings(read: (key: QuoteRawKey) => string): QuoteRaw {
   return {
     name: read("name"),
@@ -136,6 +140,7 @@ export function quoteRawFromStrings(read: (key: QuoteRawKey) => string): QuoteRa
     street: read("street"),
     city: read("city"),
     postcode: read("postcode"),
+    access_note: read("access_note"),
     description: read("description"),
     service: read("service"),
     company_website: read("company_website"),
@@ -149,30 +154,27 @@ export function validateQuote(raw: QuoteRaw): { ok: true; value: ValidQuote } | 
   if (!name) errors.push({ field: "name", message: quoteFields.name.missing });
   else if (name.length > quoteFields.name.max) {
     errors.push({ field: "name", message: tooLong("Name", quoteFields.name.max) });
-  } else if (hasDisallowedControls(name, false)) {
-    errors.push({ field: "name", message: quoteFields.name.missing });
+  } else {
+    const character = customerTextError("name", name);
+    if (character) errors.push({ field: "name", message: character });
   }
 
   const email = raw.email.trim();
   if (!email) errors.push({ field: "email", message: quoteFields.email.missing });
   else if (email.length > quoteFields.email.max) {
     errors.push({ field: "email", message: tooLong("Email", quoteFields.email.max) });
-  } else if (!emailPattern.test(email) || hasDisallowedControls(email, false)) {
-    errors.push({ field: "email", message: quoteFields.email.invalid });
+  } else {
+    const character = customerTextError("email", email);
+    if (character) errors.push({ field: "email", message: character });
   }
 
   const phone = raw.phone.trim();
-  const digits = phone.replace(/\D/g, "");
   if (!phone) errors.push({ field: "phone", message: quoteFields.phone.missing });
   else if (phone.length > quoteFields.phone.max) {
     errors.push({ field: "phone", message: tooLong("Phone", quoteFields.phone.max) });
-  } else if (
-    !phonePattern.test(phone) ||
-    digits.length < quotePhoneDigits.min ||
-    digits.length > quotePhoneDigits.max ||
-    hasDisallowedControls(phone, false)
-  ) {
-    errors.push({ field: "phone", message: quoteFields.phone.invalid });
+  } else {
+    const character = customerTextError("phone", phone);
+    if (character) errors.push({ field: "phone", message: character });
   }
 
   const address = validateAddressParts({
@@ -183,6 +185,10 @@ export function validateQuote(raw: QuoteRaw): { ok: true; value: ValidQuote } | 
   });
   if (!address.ok) errors.push(...address.errors);
 
+  const accessNote = raw.access_note.trim();
+  const accessMessage = accessNoteError(raw.access_note);
+  if (accessMessage) errors.push({ field: "access_note", message: accessMessage });
+
   const description = raw.description.trim();
   const descriptionCopy = quoteDescriptionCopy(raw.service.trim());
   if (!description) errors.push({ field: "description", message: descriptionCopy.missing });
@@ -191,8 +197,11 @@ export function validateQuote(raw: QuoteRaw): { ok: true; value: ValidQuote } | 
       field: "description",
       message: tooLong(descriptionCopy.label, quoteFields.description.max),
     });
-  } else if (hasDisallowedControls(description, true)) {
-    errors.push({ field: "description", message: descriptionCopy.missing });
+  } else {
+    const character = customerTextError("description", description, {
+      descriptionLabel: descriptionCopy.label,
+    });
+    if (character) errors.push({ field: "description", message: character });
   }
 
   const serviceSlug = raw.service.trim();
@@ -216,6 +225,7 @@ export function validateQuote(raw: QuoteRaw): { ok: true; value: ValidQuote } | 
       email: email.toLowerCase(),
       phone,
       address: address.line,
+      accessNote,
       description,
       serviceSlug: service.slug,
       serviceName: service.name,
