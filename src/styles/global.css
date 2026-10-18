@@ -180,6 +180,85 @@ button[aria-busy="true"] {
 }
 
 /*
+ * No color-scheme is set on the page, so it stays "normal" and follows the
+ * phone. In dark mode, Safari and Chrome then paint autofill (and the
+ * focused control) dark grey even though these fields are white
+ * (--color-surface-container-lowest) with dark text (--color-on-surface).
+ * Opt the booking and quote text controls into a light scheme, and cover
+ * the WebKit autofill background with that same white field fill.
+ * The inset shadow does not replace the border, so aria-invalid keeps
+ * the error border. Focus outlines and pressed buttons are untouched.
+ */
+:is(#book-form, #quote-form) :is(
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea
+) {
+  color-scheme: light;
+  caret-color: var(--color-on-surface);
+  transition: background-color 9999s ease-out;
+}
+
+:is(#book-form, #quote-form) :is(
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea
+):-webkit-autofill,
+:is(#book-form, #quote-form) :is(
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea
+):-webkit-autofill:hover,
+:is(#book-form, #quote-form) :is(
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea
+):-webkit-autofill:focus,
+:is(#book-form, #quote-form) :is(
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea
+):-webkit-autofill:active {
+  -webkit-text-fill-color: var(--color-on-surface) !important;
+  caret-color: var(--color-on-surface);
+  background-color: var(--color-surface-container-lowest) !important;
+  box-shadow: inset 0 0 0 1000px var(--color-surface-container-lowest);
+  transition: background-color 9999s ease-out;
+}
+
+:is(#book-form, #quote-form) :is(
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea
+)[aria-invalid="true"]:-webkit-autofill,
+:is(#book-form, #quote-form) :is(
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea
+)[aria-invalid="true"]:-webkit-autofill:hover,
+:is(#book-form, #quote-form) :is(
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea
+)[aria-invalid="true"]:-webkit-autofill:focus,
+:is(#book-form, #quote-form) :is(
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea
+)[aria-invalid="true"]:-webkit-autofill:active {
+  border-color: var(--color-error);
+}
+
+/*
  * Place-name grids. Rules sit between rows only:
  * the first row has no top rule, and the last row has no bottom rule.
  * place-list-sm is two columns from 40rem; place-list-md from 48rem.

@@ -197,7 +197,6 @@ const notSavedMessage = leadNotSavedMessage();
     import {
       applyFieldErrors,
       applyServerFieldErrors,
-      fieldErrorElement,
       formPayload,
       messageOf,
       readJson,
@@ -221,8 +220,6 @@ const notSavedMessage = leadNotSavedMessage();
       writeStatus("book-status", "", true);
       const firstInvalid = applyFieldErrors(bookForm);
       if (firstInvalid) {
-        const error = fieldErrorElement(firstInvalid);
-        writeStatus("book-status", error?.textContent ?? "", false);
         firstInvalid.focus();
         if (button) restoreSubmit(button, false);
         return;
@@ -257,11 +254,14 @@ const notSavedMessage = leadNotSavedMessage();
           return;
         }
 
-        const message = messageOf(body) ?? bookForm.dataset.failure ?? "";
-        const status = writeStatus("book-status", message, false);
         const control = applyServerFieldErrors(bookForm, body);
-        if (control) control.focus();
-        else if (status && message) status.focus();
+        if (control) {
+          control.focus();
+        } else {
+          const message = messageOf(body) ?? bookForm.dataset.failure ?? "";
+          const status = writeStatus("book-status", message, false);
+          if (status && message) status.focus();
+        }
       } catch {
         const status = writeStatus("book-status", bookForm.dataset.failure ?? "", false);
         status?.focus();

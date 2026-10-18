@@ -327,7 +327,6 @@ const jsonLd = {
     import {
       applyFieldErrors,
       applyServerFieldErrors,
-      fieldErrorElement,
       formPayload,
       messageOf,
       readJson,
@@ -350,8 +349,6 @@ const jsonLd = {
       writeStatus("quote-status", "", true);
       const firstInvalid = applyFieldErrors(quoteForm);
       if (firstInvalid) {
-        const error = fieldErrorElement(firstInvalid);
-        writeStatus("quote-status", error?.textContent ?? "", false);
         firstInvalid.focus();
         if (button) restoreSubmit(button, false);
         return;
@@ -370,12 +367,15 @@ const jsonLd = {
           body: JSON.stringify(formPayload(quoteForm)),
         });
         const body = await readJson(response);
-        const message = messageOf(body) ?? quoteForm.dataset.failure ?? "";
-        const status = writeStatus("quote-status", message, response.ok);
         succeeded = response.ok;
         const control = response.ok ? null : applyServerFieldErrors(quoteForm, body);
-        if (control) control.focus();
-        else if (status && message) status.focus();
+        if (control) {
+          control.focus();
+        } else {
+          const message = messageOf(body) ?? quoteForm.dataset.failure ?? "";
+          const status = writeStatus("quote-status", message, response.ok);
+          if (status && message) status.focus();
+        }
       } catch {
         const status = writeStatus("quote-status", quoteForm.dataset.failure ?? "", false);
         status?.focus();
