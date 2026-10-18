@@ -123,9 +123,10 @@ export function calendlyRedirect(
   const params = new URLSearchParams(url.search);
   params.set("name", lead.name);
   params.set("email", lead.email);
-  params.set("a1", lead.address);
-  if (lead.accessNote) params.set("a2", lead.accessNote);
-  else params.delete("a2");
+  params.set("location", lead.address);
+  if (lead.accessNote) params.set("a1", lead.accessNote);
+  else params.delete("a1");
+  params.delete("a2");
   url.search = params.toString();
   return url.toString();
 }
